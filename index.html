@@ -237,7 +237,41 @@
   .toast.show{ transform: translateX(-50%) translateY(0); }
 
   .loading-msg{ text-align:center; padding:60px 20px; color:var(--ink-soft); font-size:14px; }
+
+  /* Setup / Shop Code screen */
+  .setup-screen{
+    position: fixed; inset:0; background: var(--paper); z-index: 500;
+    display:none; align-items:center; justify-content:center; padding:24px;
+  }
+  .setup-screen.active{ display:flex; }
+  .setup-box{
+    max-width: 400px; width:100%; background: var(--paper-raised);
+    border:1px solid var(--line); border-radius:14px; padding:26px 24px;
+    box-shadow: var(--shadow);
+  }
+  .setup-box h2{ font-family:'Space Grotesk'; color:var(--teal-dark); margin:0 0 8px; font-size:20px; }
+  .setup-box p{ font-size:13.5px; color:var(--ink-soft); line-height:1.5; margin: 0 0 18px; }
+  .setup-toggle{ display:flex; gap:6px; margin-bottom:16px; }
+  .setup-toggle button{
+    flex:1; padding:9px 6px; border-radius:8px; border:1.5px solid var(--line);
+    background: var(--paper); font-family:'Inter'; font-weight:600; font-size:12.5px;
+    color: var(--ink-soft); cursor:pointer;
+  }
+  .setup-toggle button.active{ border-color: var(--teal); background: var(--teal); color: var(--paper); }
+
+  .shop-code-chip{
+    font-family:'IBM Plex Mono'; font-size:11px; color: var(--ink-soft);
+    background: var(--paper-raised); border:1px solid var(--line); border-radius:14px;
+    padding: 3px 10px; cursor:pointer; white-space:nowrap;
+  }
+  .sync-dot{
+    display:inline-block; width:7px; height:7px; border-radius:50%;
+    background: var(--profit); margin-right:5px; vertical-align:middle;
+  }
+  .sync-dot.offline{ background: var(--debt); }
 </style>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 </head>
 <body>
 <div id="app">
@@ -246,6 +280,9 @@
     <div>
       <h1>My Shop Ledger</h1>
       <div class="tagline">cash · transfer · credit · stock — all in one place</div>
+    </div>
+    <div class="shop-code-chip" id="shopCodeChip" onclick="openSetupScreen()">
+      <span class="sync-dot" id="syncDot"></span><span id="shopCodeLabel">Connect</span>
     </div>
   </div>
 
@@ -405,6 +442,22 @@
 
 <div class="toast" id="toast"></div>
 
+<!-- Shop Code setup screen -->
+<div class="setup-screen" id="setupScreen">
+  <div class="setup-box">
+    <h2>Connect Your Shop</h2>
+    <p>Enter a Shop Code to sync your ledger. Use the exact same code on your partner's phone so you both see the same numbers, live.</p>
+    <div class="setup-toggle" id="setupToggle">
+      <button data-mode="join" class="active">Join with a code</button>
+      <button data-mode="new">Create a new shop</button>
+    </div>
+    <label>Shop Code</label>
+    <input type="text" id="shopCodeInput" placeholder="e.g. R55SHOP" style="text-transform:uppercase;">
+    <div class="hint" id="setupHint">Ask your partner for their Shop Code, or make one up if this is the first phone.</div>
+    <button class="submit-btn" id="connectShopBtn">Connect</button>
+  </div>
+</div>
+
 <script>
 let state = { sales: [], stock: [], creditPayments: [] };
 let dashFilter = 'all';
@@ -422,27 +475,101 @@ function showToast(msg){
   setTimeout(()=> t.classList.remove('show'), 1800);
 }
 
-async function loadData(){
-  try{
-    const raw = localStorage.getItem('businessData');
-    if(raw){
-      const parsed = JSON.parse(raw);
-      state.sales = parsed.sales || [];
-      state.stock = parsed.stock || [];
-      state.creditPayments = parsed.creditPayments || [];
+// ---------- FIREBASE SYNC ----------
+const firebaseConfig = {
+  apiKey: "AIzaSyAs2UK1tTpJ1F8ovcDap_GJeIeH5ZSgC_o",
+  authDomain: "r55-shop-ledger.firebaseapp.com",
+  databaseURL: "https://r55-shop-ledger-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "r55-shop-ledger",
+  storageBucket: "r55-shop-ledger.firebasestorage.app",
+  messagingSenderId: "67566153710",
+  appId: "1:67566153710:web:c41332fb35d7f84bdd28ff"
+};
+
+firebase.initializeApp(firebaseConfig);
+const rtdb = firebase.database();
+
+let shopCode = localStorage.getItem('shopCode') || null;
+let shopRef = null;
+let suppressNextSave = false; // avoids re-writing data we just received from the server
+
+function setSyncStatus(connected){
+  const dot = document.getElementById('syncDot');
+  if(dot) dot.classList.toggle('offline', !connected);
+}
+
+rtdb.ref('.info/connected').on('value', (snap)=>{
+  setSyncStatus(snap.val() === true);
+});
+
+function updateShopCodeChip(){
+  const label = document.getElementById('shopCodeLabel');
+  if(label) label.textContent = shopCode ? shopCode : 'Connect';
+}
+
+function subscribeToShop(){
+  if(shopRef) shopRef.off();
+  shopRef = rtdb.ref('shops/' + shopCode);
+  shopRef.on('value', (snapshot)=>{
+    const data = snapshot.val();
+    if(data){
+      state.sales = data.sales || [];
+      state.stock = data.stock || [];
+      state.creditPayments = data.creditPayments || [];
+    } else {
+      state = { sales: [], stock: [], creditPayments: [] };
     }
-  }catch(e){
-    // no data yet, keep defaults
-  }
+    renderAll();
+  }, (err)=>{
+    showToast('⚠️ Sync error — check your internet');
+  });
+}
+
+async function loadData(){
+  // handled by subscribeToShop's realtime listener; nothing to do here
 }
 
 async function saveData(){
+  if(!shopCode || !shopRef) return;
   try{
-    localStorage.setItem('businessData', JSON.stringify(state));
+    await shopRef.set(state);
   }catch(e){
-    showToast("⚠️ Couldn't save — your phone storage may be full");
+    showToast("Saved on this phone — will sync when back online");
   }
 }
+
+function openSetupScreen(){
+  document.getElementById('setupScreen').classList.add('active');
+  if(shopCode) document.getElementById('shopCodeInput').value = shopCode;
+}
+
+function closeSetupScreen(){
+  document.getElementById('setupScreen').classList.remove('active');
+}
+
+document.getElementById('connectShopBtn').addEventListener('click', ()=>{
+  const val = document.getElementById('shopCodeInput').value.trim().toUpperCase().replace(/[.#$\[\]\/\s]/g,'');
+  if(!val){ showToast('Enter a shop code'); return; }
+  shopCode = val;
+  localStorage.setItem('shopCode', shopCode);
+  updateShopCodeChip();
+  subscribeToShop();
+  closeSetupScreen();
+  showToast('Connected to ' + shopCode);
+});
+
+document.getElementById('setupToggle').querySelectorAll('button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.getElementById('setupToggle').querySelectorAll('button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    const hint = document.getElementById('setupHint');
+    if(btn.dataset.mode === 'new'){
+      hint.textContent = "Make up any code (e.g. your shop name). Give this same code to your partner so they can join.";
+    } else {
+      hint.textContent = "Ask your partner for their Shop Code, or make one up if this is the first phone.";
+    }
+  });
+});
 
 // ---------- DATE FILTER HELPERS ----------
 function inRange(dateStr, filter){
@@ -867,9 +994,16 @@ if('serviceWorker' in navigator){
   document.getElementById('stockDate').value = todayStr();
   document.getElementById('paymentDate').value = todayStr();
 
-  await loadData();
   document.getElementById('loading').style.display = 'none';
   document.getElementById('mainContent').style.display = 'block';
+
+  updateShopCodeChip();
+
+  if(shopCode){
+    subscribeToShop();
+  } else {
+    openSetupScreen();
+  }
   renderAll();
 })();
 </script>
