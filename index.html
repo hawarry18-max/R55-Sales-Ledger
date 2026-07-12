@@ -3,14 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
-<title>My Shop Ledger</title>
+<title>uSales</title>
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#1F5C56">
+<meta name="theme-color" content="#5C1A2E">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Shop Ledger">
+<meta name="apple-mobile-web-app-title" content="uSales">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="icon" href="icons/icon-192.png" type="image/png">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@500;600&family=Inter:wght@400;500;600&display=swap');
 
@@ -19,14 +21,14 @@
     --paper-raised: #FDFAF2;
     --ink: #23302B;
     --ink-soft: #5B6660;
-    --teal: #1F5C56;
-    --teal-dark: #143E3A;
-    --amber: #D98E3F;
-    --amber-dark: #B8721F;
+    --teal: #5C1A2E;
+    --teal-dark: #3D0F1D;
+    --amber: #D9A93E;
+    --amber-dark: #B4842A;
     --debt: #B5482F;
-    --debt-bg: #F4DED6;
+    --debt-bg: rgba(181,72,47,0.16);
     --profit: #3F7A52;
-    --profit-bg: #DDEAE0;
+    --profit-bg: rgba(63,122,82,0.16);
     --line: #D8CBAA;
     --shadow: 0 2px 8px rgba(35,48,43,0.08);
   }
@@ -39,15 +41,23 @@
     color: var(--ink);
     font-family: 'Inter', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
+    transition: background 0.2s ease, color 0.2s ease;
   }
 
   #app{ max-width: 720px; margin: 0 auto; padding: 16px 16px 90px; min-height: 100vh; }
 
   .brand{
-    display:flex; align-items:baseline; justify-content:space-between;
+    display:flex; align-items:center; justify-content:space-between;
     padding: 6px 2px 16px;
     border-bottom: 2px solid var(--teal);
     margin-bottom: 18px;
+    gap: 10px;
+  }
+  .brand-left{ display:flex; align-items:center; gap:10px; min-width:0; }
+  .hamburger-btn{
+    background: var(--paper-raised); border:1px solid var(--line); border-radius:9px;
+    width:38px; height:38px; font-size:18px; cursor:pointer; color: var(--teal-dark);
+    flex-shrink:0;
   }
   .brand h1{
     font-family:'Space Grotesk', sans-serif;
@@ -66,20 +76,24 @@
     box-shadow: var(--shadow);
     position: relative;
     overflow:hidden;
+    cursor: default;
   }
+  .stat-card.clickable{ cursor:pointer; }
   .stat-card::before{
     content:''; position:absolute; left:0; top:0; bottom:0; width:4px;
   }
   .stat-card.cash::before{ background: var(--teal); }
   .stat-card.transfer::before{ background: var(--amber-dark); }
   .stat-card.credit::before{ background: var(--debt); }
+  .stat-card.change::before{ background: #7A5FB5; }
   .stat-card.stock::before{ background: var(--ink-soft); }
+  .stat-card.owner::before{ background: #2B7DA6; }
   .stat-card .label{ font-size:11px; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink-soft); font-weight:600; margin-bottom:4px; }
   .stat-card .value{ font-family:'IBM Plex Mono', monospace; font-size:19px; font-weight:600; }
 
   .profit-card{
     background: linear-gradient(135deg, var(--teal-dark), var(--teal));
-    color: var(--paper);
+    color: var(--paper-raised);
     border-radius: 12px;
     padding: 18px 18px;
     margin-bottom: 20px;
@@ -96,7 +110,7 @@
     padding: 6px 12px; border-radius:20px; border:1px solid var(--line);
     background: var(--paper-raised); color: var(--ink-soft); cursor:pointer;
   }
-  .filter-chip.active{ background: var(--teal); color:var(--paper); border-color:var(--teal); }
+  .filter-chip.active{ background: var(--teal); color:var(--paper-raised); border-color:var(--teal); }
 
   h2.section-title{
     font-family:'Space Grotesk', sans-serif; font-size:15px; font-weight:600;
@@ -105,6 +119,10 @@
   h2.section-title .count{
     font-family:'IBM Plex Mono'; font-size:11px; font-weight:600; color:var(--ink-soft);
     background:var(--line); padding:2px 7px; border-radius:10px;
+  }
+  .back-link{
+    display:inline-flex; align-items:center; gap:5px; font-size:13px; font-weight:600;
+    color: var(--teal-dark); background:none; border:none; cursor:pointer; padding:4px 0; margin-bottom:6px;
   }
 
   /* Tabs (nav) */
@@ -120,12 +138,11 @@
   }
   .tab-btn .ic{ font-size:19px; }
   .tab-btn.active{ color: var(--teal-dark); }
-  .tab-btn.active .ic{ transform: translateY(-1px); }
 
   @media (min-width: 760px){
     .tabbar{ position: static; border-top:none; justify-content:flex-start; gap:4px; background:none; margin-bottom:20px; }
     .tab-btn{ flex:none; padding:8px 16px; border-radius:8px; background:var(--paper-raised); border:1px solid var(--line); }
-    .tab-btn.active{ background:var(--teal); color:var(--paper); border-color:var(--teal); }
+    .tab-btn.active{ background:var(--teal); color:var(--paper-raised); border-color:var(--teal); }
     #app{ padding-bottom:40px; }
   }
 
@@ -137,13 +154,13 @@
     background: var(--paper-raised); border:1px solid var(--line); border-radius:12px;
     padding: 16px; box-shadow: var(--shadow); margin-bottom:16px;
   }
-  .type-toggle{ display:flex; gap:6px; margin-bottom:16px; }
+  .type-toggle{ display:flex; gap:6px; margin-bottom:16px; flex-wrap:wrap; }
   .type-toggle button{
-    flex:1; padding:10px 6px; border-radius:8px; border:1.5px solid var(--line);
+    flex:1; min-width:90px; padding:10px 6px; border-radius:8px; border:1.5px solid var(--line);
     background: var(--paper); font-family:'Inter'; font-weight:600; font-size:12.5px;
     color: var(--ink-soft); cursor:pointer;
   }
-  .type-toggle button.active{ border-color: var(--teal); background: var(--teal); color: var(--paper); }
+  .type-toggle button.active{ border-color: var(--teal); background: var(--teal); color: var(--paper-raised); }
 
   label{ display:block; font-size:12px; font-weight:600; color:var(--ink-soft); margin: 12px 0 5px; }
   label:first-of-type{ margin-top:0; }
@@ -153,9 +170,9 @@
   }
   input:focus, select:focus, textarea:focus{ outline: 2px solid var(--amber); outline-offset:1px; }
 
-  .method-row{ display:flex; gap:6px; }
+  .method-row{ display:flex; gap:6px; flex-wrap:wrap; }
   .method-row button{
-    flex:1; padding:9px 4px; border-radius:8px; border:1.5px solid var(--line);
+    flex:1; min-width:70px; padding:9px 4px; border-radius:8px; border:1.5px solid var(--line);
     background:var(--paper); font-family:'Inter'; font-weight:600; font-size:12px;
     color:var(--ink-soft); cursor:pointer;
   }
@@ -163,10 +180,11 @@
 
   .submit-btn{
     width:100%; margin-top:16px; padding:13px; border:none; border-radius:9px;
-    background: var(--teal); color: var(--paper); font-family:'Space Grotesk'; font-weight:600;
+    background: var(--teal); color: var(--paper-raised); font-family:'Space Grotesk'; font-weight:600;
     font-size:15px; cursor:pointer; box-shadow: var(--shadow);
   }
   .submit-btn:active{ transform: scale(0.99); }
+  .submit-btn.secondary{ background: var(--paper); color: var(--teal-dark); border: 1.5px solid var(--teal); }
 
   .hint{ font-size:11.5px; color:var(--ink-soft); margin-top:4px; }
 
@@ -197,12 +215,16 @@
   .tag.credit{ background:var(--debt-bg); color:var(--debt); }
   .tag.goods{ background:#E9E3D2; color:#6B5B33; }
   .tag.stock{ background:#E4E4E4; color:#555; }
+  .tag.owed{ background: rgba(122,95,181,0.18); color:#5A4590; }
+  .tag.collected{ background: var(--profit-bg); color: var(--profit); }
+  .tag.owner1{ background: rgba(43,125,166,0.18); color:#1F5C7A; }
+  .tag.owner2{ background: rgba(217,169,62,0.22); color:#8A6A1E; }
 
   .empty-state{ text-align:center; padding: 36px 20px; color:var(--ink-soft); }
   .empty-state .ic{ font-size:32px; margin-bottom:8px; }
   .empty-state .msg{ font-size:13.5px; }
 
-  /* Credit book */
+  /* Credit / product / owner cards */
   .customer-card{
     background: var(--paper-raised); border:1px solid var(--line); border-radius:10px;
     padding: 13px 14px; margin-bottom:9px; cursor:pointer;
@@ -212,6 +234,32 @@
   .customer-card .cbal{ font-family:'IBM Plex Mono'; font-weight:600; font-size:15px; color: var(--debt); }
   .customer-card .cbal.cleared{ color: var(--profit); }
   .customer-card .clast{ font-size:11.5px; color:var(--ink-soft); margin-top:3px; }
+
+  .product-card{
+    background: var(--paper-raised); border:1px solid var(--line); border-radius:10px;
+    padding: 13px 14px; margin-bottom:9px;
+  }
+  .product-card .top-row{ display:flex; justify-content:space-between; align-items:center; gap:8px; }
+  .product-card .pname{ font-weight:600; font-size:15px; }
+  .product-card .pqty{ font-family:'IBM Plex Mono'; font-weight:600; font-size:14px; }
+  .product-card .pqty.low{ color: var(--debt); }
+  .product-card .pmeta{ font-size:11.5px; color:var(--ink-soft); margin-top:3px; }
+  .product-card .pbtns{ display:flex; gap:6px; margin-top:10px; }
+  .product-card .pbtns button{
+    flex:1; padding:8px 4px; border-radius:7px; border:1.5px solid var(--line);
+    background: var(--paper); font-family:'Inter'; font-weight:600; font-size:12px;
+    color: var(--teal-dark); cursor:pointer;
+  }
+
+  .owner-card{
+    background: var(--paper-raised); border:1px solid var(--line); border-radius:12px;
+    padding: 16px; margin-bottom:10px; box-shadow: var(--shadow);
+  }
+  .owner-card .label{ font-size:11px; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink-soft); font-weight:600; }
+  .owner-card .value{ font-family:'IBM Plex Mono', monospace; font-size:24px; font-weight:600; margin-top:4px; }
+  .owner-card .value.neg{ color: var(--debt); }
+  .owner-card .value.pos{ color: var(--profit); }
+  .owner-card .sub{ font-size:11.5px; color:var(--ink-soft); margin-top:4px; }
 
   .modal-overlay{
     position:fixed; inset:0; background:rgba(20,25,22,0.5); display:none;
@@ -230,7 +278,7 @@
 
   .toast{
     position:fixed; top:16px; left:50%; transform: translateX(-50%) translateY(-60px);
-    background: var(--teal-dark); color:var(--paper); padding:10px 20px; border-radius:8px;
+    background: var(--teal-dark); color:var(--paper-raised); padding:10px 20px; border-radius:8px;
     font-size:13.5px; font-weight:600; z-index:200; transition: transform 0.25s ease;
     box-shadow: var(--shadow);
   }
@@ -257,29 +305,78 @@
     background: var(--paper); font-family:'Inter'; font-weight:600; font-size:12.5px;
     color: var(--ink-soft); cursor:pointer;
   }
-  .setup-toggle button.active{ border-color: var(--teal); background: var(--teal); color: var(--paper); }
+  .setup-toggle button.active{ border-color: var(--teal); background: var(--teal); color: var(--paper-raised); }
 
   .shop-code-chip{
     font-family:'IBM Plex Mono'; font-size:11px; color: var(--ink-soft);
     background: var(--paper-raised); border:1px solid var(--line); border-radius:14px;
-    padding: 3px 10px; cursor:pointer; white-space:nowrap;
+    padding: 3px 10px; cursor:pointer; white-space:nowrap; flex-shrink:0;
   }
   .sync-dot{
     display:inline-block; width:7px; height:7px; border-radius:50%;
     background: var(--profit); margin-right:5px; vertical-align:middle;
   }
   .sync-dot.offline{ background: var(--debt); }
+
+  /* Slide-out drawer */
+  .drawer-overlay{
+    position:fixed; inset:0; background:rgba(20,25,22,0.45); z-index:300;
+    display:none;
+  }
+  .drawer-overlay.active{ display:block; }
+  .drawer{
+    position:fixed; top:0; left:0; bottom:0; width:270px; max-width:82vw;
+    background: var(--paper-raised); z-index:301; box-shadow: 4px 0 20px rgba(0,0,0,0.2);
+    transform: translateX(-100%); transition: transform 0.25s ease;
+    display:flex; flex-direction:column; padding: 20px 16px;
+    overflow-y:auto;
+  }
+  .drawer.active{ transform: translateX(0); }
+  .drawer-head{ font-family:'Space Grotesk'; font-weight:700; font-size:18px; color:var(--teal-dark); margin-bottom:4px; }
+  .drawer-sub{ font-size:11px; color:var(--ink-soft); margin-bottom:18px; }
+  .drawer-btn{
+    display:flex; align-items:center; gap:10px; width:100%; text-align:left;
+    background:none; border:none; padding:11px 6px; border-radius:8px;
+    font-family:'Inter'; font-size:14px; font-weight:600; color:var(--ink); cursor:pointer;
+  }
+  .drawer-btn:active{ background: var(--paper); }
+  .drawer-hr{ border:none; border-top:1px solid var(--line); margin:10px 0; }
+  .drawer-row{
+    display:flex; align-items:center; justify-content:space-between;
+    padding: 11px 6px; font-size:14px; font-weight:600;
+  }
+  .switch{ position:relative; width:44px; height:24px; flex-shrink:0; }
+  .switch input{ opacity:0; width:0; height:0; }
+  .switch-slider{
+    position:absolute; inset:0; background: var(--line); border-radius:24px; cursor:pointer; transition:0.2s;
+  }
+  .switch-slider::before{
+    content:''; position:absolute; height:18px; width:18px; left:3px; top:3px;
+    background: var(--paper-raised); border-radius:50%; transition:0.2s;
+  }
+  .switch input:checked + .switch-slider{ background: var(--teal); }
+  .switch input:checked + .switch-slider::before{ transform: translateX(20px); }
+
+  .theme-swatch{
+    display:flex; align-items:center; gap:12px; width:100%; padding:12px 10px;
+    border-radius:10px; border:1.5px solid var(--line); background:var(--paper);
+    margin-bottom:8px; cursor:pointer; font-family:'Inter'; font-weight:600; font-size:13.5px; color:var(--ink);
+  }
+  .theme-swatch.active{ border-color: var(--teal); background: var(--paper-raised); }
+  .swatch-dots{ display:flex; gap:4px; }
+  .swatch-dot{ width:16px; height:16px; border-radius:50%; }
 </style>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 </head>
 <body>
 <div id="app">
 
   <div class="brand">
-    <div>
-      <h1>My Shop Ledger</h1>
-      <div class="tagline">cash · transfer · credit · stock — all in one place</div>
+    <div class="brand-left">
+      <button class="hamburger-btn" onclick="openDrawer()">&#9776;</button>
+      <div>
+        <h1>uSales</h1>
+        <div class="tagline">cash · transfer · credit · stock — all in one place</div>
+      </div>
     </div>
     <div class="shop-code-chip" id="shopCodeChip" onclick="openSetupScreen()">
       <span class="sync-dot" id="syncDot"></span><span id="shopCodeLabel">Connect</span>
@@ -287,10 +384,10 @@
   </div>
 
   <div class="tabbar">
-    <button class="tab-btn active" data-tab="dashboard"><span class="ic">📊</span>Home</button>
-    <button class="tab-btn" data-tab="add"><span class="ic">➕</span>Add</button>
-    <button class="tab-btn" data-tab="credit"><span class="ic">🧾</span>Credit Book</button>
-    <button class="tab-btn" data-tab="history"><span class="ic">📜</span>History</button>
+    <button class="tab-btn active" data-tab="dashboard" onclick="switchToView('dashboard')"><span class="ic">📊</span>Home</button>
+    <button class="tab-btn" data-tab="add" onclick="switchToView('add')"><span class="ic">➕</span>Add</button>
+    <button class="tab-btn" data-tab="credit" onclick="switchToView('credit')"><span class="ic">🧾</span>Credit Book</button>
+    <button class="tab-btn" data-tab="history" onclick="switchToView('history')"><span class="ic">📜</span>History</button>
   </div>
 
   <div id="loading" class="loading-msg">Opening your ledger…</div>
@@ -302,7 +399,7 @@
       <div class="filter-row" id="dashFilters"></div>
 
       <div class="profit-card">
-        <div class="label">Profit (sales minus stock spent)</div>
+        <div class="label">Profit (sales minus stock &amp; owner draws)</div>
         <div class="value" id="profitValue">K0.00</div>
         <div class="sub" id="profitSub"></div>
       </div>
@@ -312,17 +409,25 @@
           <div class="label">Cash in hand</div>
           <div class="value" id="statCash">K0.00</div>
         </div>
-        <div class="stat-card transfer">
+        <div class="stat-card transfer clickable" onclick="switchToView('bank')">
           <div class="label">Bank / Transfer</div>
           <div class="value" id="statTransfer">K0.00</div>
         </div>
-        <div class="stat-card credit">
+        <div class="stat-card credit clickable" onclick="switchToView('credit')">
           <div class="label">Credit owed to you</div>
           <div class="value" id="statCredit">K0.00</div>
+        </div>
+        <div class="stat-card change clickable" onclick="switchToView('change')">
+          <div class="label">Change owed to customers</div>
+          <div class="value" id="statChange">K0.00</div>
         </div>
         <div class="stat-card stock">
           <div class="label">Spent on stock</div>
           <div class="value" id="statStock">K0.00</div>
+        </div>
+        <div class="stat-card owner clickable" onclick="switchToView('owner')">
+          <div class="label">Owner draws (net)</div>
+          <div class="value" id="statOwner">K0.00</div>
         </div>
       </div>
 
@@ -330,7 +435,7 @@
       <div id="recentList"></div>
     </div>
 
-    <!-- ADD -->
+    <!-- ADD (unchanged) -->
     <div class="view" id="view-add">
       <div class="type-toggle" id="entryTypeToggle">
         <button data-type="sale" class="active">🛒 Sale</button>
@@ -338,7 +443,6 @@
         <button data-type="payment">💵 Credit Payment</button>
       </div>
 
-      <!-- SALE FORM -->
       <div class="form-block" id="form-sale">
         <label>Date</label>
         <input type="date" id="saleDate">
@@ -370,7 +474,6 @@
         <button class="submit-btn" id="submitSale">Save Sale</button>
       </div>
 
-      <!-- STOCK FORM -->
       <div class="form-block" id="form-stock" style="display:none;">
         <label>Date</label>
         <input type="date" id="stockDate">
@@ -390,7 +493,6 @@
         <button class="submit-btn" id="submitStock">Save Stock Purchase</button>
       </div>
 
-      <!-- CREDIT PAYMENT FORM -->
       <div class="form-block" id="form-payment" style="display:none;">
         <label>Date</label>
         <input type="date" id="paymentDate">
@@ -414,16 +516,133 @@
       </div>
     </div>
 
-    <!-- CREDIT BOOK -->
+    <!-- CREDIT BOOK (unchanged) -->
     <div class="view" id="view-credit">
       <h2 class="section-title">Who owes you <span class="count" id="creditCustCount">0</span></h2>
       <div id="creditList"></div>
     </div>
 
-    <!-- HISTORY -->
+    <!-- HISTORY (unchanged) -->
     <div class="view" id="view-history">
       <div class="filter-row" id="historyFilters"></div>
       <div id="historyList"></div>
+    </div>
+
+    <!-- NEW: BANK / TRANSFERS -->
+    <div class="view" id="view-bank">
+      <button class="back-link" onclick="switchToView('dashboard')">← Back to Home</button>
+      <h2 class="section-title">🏦 Bank / Transfer Balance</h2>
+      <div class="profit-card" style="margin-bottom:16px;">
+        <div class="label">Current transfer/bank balance</div>
+        <div class="value" id="bankBalanceValue">K0.00</div>
+      </div>
+
+      <div class="form-block">
+        <label>Date</label>
+        <input type="date" id="transferDate">
+        <label>Send money to</label>
+        <input type="text" id="transferRecipient" placeholder="e.g. Family, supplier, partner">
+        <label>Amount (K)</label>
+        <input type="number" inputmode="decimal" id="transferAmount" placeholder="0.00">
+        <label>Note (optional)</label>
+        <input type="text" id="transferNote" placeholder="e.g. school fees, restock supplier">
+        <button class="submit-btn" id="submitTransfer">Save Transfer</button>
+      </div>
+
+      <h2 class="section-title">Transfer history</h2>
+      <div id="transferList"></div>
+    </div>
+
+    <!-- NEW: CHANGE TRACKING -->
+    <div class="view" id="view-change">
+      <button class="back-link" onclick="switchToView('dashboard')">← Back to Home</button>
+      <h2 class="section-title">🔁 Change Owed to Customers</h2>
+
+      <div class="form-block">
+        <label>Date</label>
+        <input type="date" id="changeDate">
+        <label>Customer name</label>
+        <input type="text" id="changeCustomer" placeholder="e.g. Mary Wemin">
+        <label>Amount of change owed (K)</label>
+        <input type="number" inputmode="decimal" id="changeAmount" placeholder="0.00">
+        <label>Note (optional)</label>
+        <input type="text" id="changeNote" placeholder="e.g. no coins at the time">
+        <button class="submit-btn" id="submitChange">Save Change Record</button>
+      </div>
+
+      <div class="filter-row" id="changeFilters"></div>
+      <div id="changeList"></div>
+    </div>
+
+    <!-- NEW: STOCK TAKING -->
+    <div class="view" id="view-stock-taking">
+      <button class="back-link" onclick="switchToView('dashboard')">← Back to Home</button>
+      <h2 class="section-title">📦 Stock Taking</h2>
+
+      <div class="form-block">
+        <label>Product name</label>
+        <input type="text" id="productName" placeholder="e.g. Coca-Cola 300ml">
+        <label>Quantity in stock</label>
+        <input type="number" inputmode="numeric" id="productQty" placeholder="0">
+        <label>Buying price (optional, K)</label>
+        <input type="number" inputmode="decimal" id="productBuyPrice" placeholder="0.00">
+        <label>Selling price (K)</label>
+        <input type="number" inputmode="decimal" id="productSellPrice" placeholder="0.00">
+        <button class="submit-btn" id="submitProduct">Add Product</button>
+      </div>
+
+      <h2 class="section-title">Your products <span class="count" id="productCount">0</span></h2>
+      <div id="productList"></div>
+
+      <h2 class="section-title">Stock history</h2>
+      <div id="stockMovementList"></div>
+    </div>
+
+    <!-- NEW: OWNER CREDIT -->
+    <div class="view" id="view-owner">
+      <button class="back-link" onclick="switchToView('dashboard')">← Back to Home</button>
+      <h2 class="section-title">👤 Shop Owner Personal Credit</h2>
+
+      <div class="card-grid" style="grid-template-columns:1fr 1fr;">
+        <div class="owner-card">
+          <div class="label">Owner 1</div>
+          <div class="value" id="owner1Value">K0.00</div>
+          <div class="sub" id="owner1Sub"></div>
+        </div>
+        <div class="owner-card">
+          <div class="label">Owner 2</div>
+          <div class="value" id="owner2Value">K0.00</div>
+          <div class="sub" id="owner2Sub"></div>
+        </div>
+      </div>
+
+      <div class="form-block">
+        <label>Which owner?</label>
+        <div class="method-row" id="ownerWhoRow">
+          <button data-owner="Owner 1" class="active">Owner 1</button>
+          <button data-owner="Owner 2">Owner 2</button>
+        </div>
+        <label>Transaction type</label>
+        <div class="method-row" id="ownerTypeRow">
+          <button data-otype="take" class="active">Took money out</button>
+          <button data-otype="repay">Paid money back</button>
+        </div>
+        <label>Date</label>
+        <input type="date" id="ownerDate">
+        <label>Amount (K)</label>
+        <input type="number" inputmode="decimal" id="ownerAmount" placeholder="0.00">
+        <label>Method</label>
+        <div class="method-row" id="ownerMethodRow">
+          <button data-method="cash" class="active">Cash</button>
+          <button data-method="transfer">Transfer</button>
+        </div>
+        <label>Note (optional)</label>
+        <input type="text" id="ownerNote" placeholder="e.g. personal expense">
+        <button class="submit-btn" id="submitOwner">Save Transaction</button>
+      </div>
+
+      <h2 class="section-title">History</h2>
+      <div id="ownerList"></div>
     </div>
 
   </div>
@@ -437,6 +656,28 @@
       <button class="close-btn" onclick="closeCustomerModal()">×</button>
     </div>
     <div id="custModalBody"></div>
+  </div>
+</div>
+
+<!-- Quick-sell from stock modal -->
+<div class="modal-overlay" id="sellModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="sellModalName">Sell Product</h3>
+      <button class="close-btn" onclick="closeSellModal()">×</button>
+    </div>
+    <div id="sellModalBody"></div>
+  </div>
+</div>
+
+<!-- Restock modal -->
+<div class="modal-overlay" id="restockModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="restockModalName">Restock</h3>
+      <button class="close-btn" onclick="closeRestockModal()">×</button>
+    </div>
+    <div id="restockModalBody"></div>
   </div>
 </div>
 
@@ -458,21 +699,163 @@
   </div>
 </div>
 
+<!-- Slide-out drawer -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-head">uSales</div>
+  <div class="drawer-sub">Shop code: <span id="drawerShopCode">—</span></div>
+
+  <button class="drawer-btn" onclick="switchToView('bank'); closeDrawer();">🏦 Bank / Transfers</button>
+  <button class="drawer-btn" onclick="switchToView('change'); closeDrawer();">🔁 Change Owed</button>
+  <button class="drawer-btn" onclick="switchToView('stock-taking'); closeDrawer();">📦 Stock Taking</button>
+  <button class="drawer-btn" onclick="switchToView('owner'); closeDrawer();">👤 Owner Credit</button>
+
+  <hr class="drawer-hr">
+
+  <div class="drawer-row">
+    <span>🌙 Dark Mode</span>
+    <label class="switch">
+      <input type="checkbox" id="darkModeToggle">
+      <span class="switch-slider"></span>
+    </label>
+  </div>
+  <button class="drawer-btn" onclick="openThemeModal()">🎨 Themes</button>
+
+  <hr class="drawer-hr">
+
+  <button class="drawer-btn" onclick="logout()" style="color:var(--debt);">🚪 Logout</button>
+</div>
+
+<!-- Theme modal -->
+<div class="modal-overlay" id="themeModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Choose a Theme</h3>
+      <button class="close-btn" onclick="closeThemeModal()">×</button>
+    </div>
+    <div id="themeList"></div>
+  </div>
+</div>
+
 <script>
-let state = { sales: [], stock: [], creditPayments: [] };
+let state = { sales: [], stock: [], creditPayments: [], transfersOut: [], changeRecords: [], products: [], stockMovements: [], ownerTransactions: [] };
 let dashFilter = 'all';
 let historyFilter = 'all';
+let changeFilter = 'owed';
 let currentEntryType = 'sale';
 
 function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
 function fmtK(n){ return 'K' + (Math.round(n*100)/100).toLocaleString(undefined,{minimumFractionDigits:2, maximumFractionDigits:2}); }
 function todayStr(){ return new Date().toISOString().slice(0,10); }
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str || '';
+  return div.innerHTML;
+}
 
 function showToast(msg){
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.classList.add('show');
   setTimeout(()=> t.classList.remove('show'), 1800);
+}
+
+// ---------- THEMES ----------
+const THEMES = {
+  default: {
+    label: 'Default — Unitech PNG', dots: ['#5C1A2E','#D9A93E'],
+    teal:'#5C1A2E', tealDark:'#3D0F1D', amber:'#D9A93E', amberDark:'#B4842A', debt:'#B5482F', profit:'#3F7A52',
+    light:{ paper:'#F6F1E4', paperRaised:'#FDFAF2', ink:'#23302B', inkSoft:'#5B6660', line:'#D8CBAA' },
+    dark:{ paper:'#1B1315', paperRaised:'#241A1D', ink:'#F3E9E9', inkSoft:'#B9A6A6', line:'#3D2A2E' }
+  },
+  batman: {
+    label: 'Batman — Black & Yellow', dots: ['#111111','#F2C230'],
+    teal:'#111111', tealDark:'#000000', amber:'#F2C230', amberDark:'#C79A1E', debt:'#D8432E', profit:'#3FA65A',
+    light:{ paper:'#E9E6DD', paperRaised:'#F5F3EC', ink:'#111111', inkSoft:'#4A4A4A', line:'#C9C4B4' },
+    dark:{ paper:'#0B0B0B', paperRaised:'#161616', ink:'#F2C230', inkSoft:'#B7A65E', line:'#2A2A2A' }
+  },
+  pacific: {
+    label: 'Pacific Design — Ocean', dots: ['#0B6E7A','#2FBE8C'],
+    teal:'#0B6E7A', tealDark:'#074D56', amber:'#2FBE8C', amberDark:'#1F9C70', debt:'#D9704A', profit:'#2FBE8C',
+    light:{ paper:'#EAF6F4', paperRaised:'#F7FDFC', ink:'#08343A', inkSoft:'#4C7A7D', line:'#BFE3DD' },
+    dark:{ paper:'#052A2E', paperRaised:'#0A3A3F', ink:'#DFF7F1', inkSoft:'#8FC7C0', line:'#134B50' }
+  },
+  pngflag: {
+    label: 'PNG Flag — Red & Gold', dots: ['#CE1126','#FCD116'],
+    teal:'#CE1126', tealDark:'#8E0B1A', amber:'#FCD116', amberDark:'#D9AF0E', debt:'#8E0B1A', profit:'#2E7D4F',
+    light:{ paper:'#F5EDE1', paperRaised:'#FCF8F1', ink:'#1A1A1A', inkSoft:'#5A5A5A', line:'#D8CDB4' },
+    dark:{ paper:'#141414', paperRaised:'#1E1E1E', ink:'#F5EDE1', inkSoft:'#B8AE9A', line:'#333333' }
+  }
+};
+
+function hexToRgba(hex, alpha){
+  const h = hex.replace('#','');
+  const r = parseInt(h.substring(0,2),16), g = parseInt(h.substring(2,4),16), b = parseInt(h.substring(4,6),16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+function applyTheme(themeName, isDark){
+  const t = THEMES[themeName] || THEMES.default;
+  const mode = isDark ? t.dark : t.light;
+  const root = document.documentElement.style;
+  root.setProperty('--teal', t.teal);
+  root.setProperty('--teal-dark', t.tealDark);
+  root.setProperty('--amber', t.amber);
+  root.setProperty('--amber-dark', t.amberDark);
+  root.setProperty('--debt', t.debt);
+  root.setProperty('--profit', t.profit);
+  root.setProperty('--debt-bg', hexToRgba(t.debt, 0.16));
+  root.setProperty('--profit-bg', hexToRgba(t.profit, 0.16));
+  root.setProperty('--paper', mode.paper);
+  root.setProperty('--paper-raised', mode.paperRaised);
+  root.setProperty('--ink', mode.ink);
+  root.setProperty('--ink-soft', mode.inkSoft);
+  root.setProperty('--line', mode.line);
+  document.querySelector('meta[name=theme-color]').setAttribute('content', t.teal);
+}
+
+function renderThemeList(){
+  const activeTheme = localStorage.getItem('appTheme') || 'default';
+  const list = document.getElementById('themeList');
+  list.innerHTML = Object.keys(THEMES).map(key=>{
+    const t = THEMES[key];
+    return `<div class="theme-swatch ${key===activeTheme?'active':''}" onclick="selectTheme('${key}')">
+      <div class="swatch-dots">
+        <span class="swatch-dot" style="background:${t.dots[0]}"></span>
+        <span class="swatch-dot" style="background:${t.dots[1]}"></span>
+      </div>
+      <span>${t.label}</span>
+    </div>`;
+  }).join('');
+}
+
+function selectTheme(key){
+  localStorage.setItem('appTheme', key);
+  const isDark = localStorage.getItem('darkMode') === '1';
+  applyTheme(key, isDark);
+  renderThemeList();
+  showToast('Theme changed');
+}
+
+function openThemeModal(){ renderThemeList(); document.getElementById('themeModal').classList.add('active'); }
+function closeThemeModal(){ document.getElementById('themeModal').classList.remove('active'); }
+
+document.getElementById('darkModeToggle').addEventListener('change', (e)=>{
+  const isDark = e.target.checked;
+  localStorage.setItem('darkMode', isDark ? '1' : '0');
+  const themeName = localStorage.getItem('appTheme') || 'default';
+  applyTheme(themeName, isDark);
+});
+
+// ---------- DRAWER ----------
+function openDrawer(){
+  document.getElementById('drawer').classList.add('active');
+  document.getElementById('drawerOverlay').classList.add('active');
+  document.getElementById('drawerShopCode').textContent = shopCode || '—';
+}
+function closeDrawer(){
+  document.getElementById('drawer').classList.remove('active');
+  document.getElementById('drawerOverlay').classList.remove('active');
 }
 
 // ---------- FIREBASE SYNC ----------
@@ -491,7 +874,6 @@ const rtdb = firebase.database();
 
 let shopCode = localStorage.getItem('shopCode') || null;
 let shopRef = null;
-let suppressNextSave = false; // avoids re-writing data we just received from the server
 
 function setSyncStatus(connected){
   const dot = document.getElementById('syncDot');
@@ -516,17 +898,18 @@ function subscribeToShop(){
       state.sales = data.sales || [];
       state.stock = data.stock || [];
       state.creditPayments = data.creditPayments || [];
+      state.transfersOut = data.transfersOut || [];
+      state.changeRecords = data.changeRecords || [];
+      state.products = data.products || [];
+      state.stockMovements = data.stockMovements || [];
+      state.ownerTransactions = data.ownerTransactions || [];
     } else {
-      state = { sales: [], stock: [], creditPayments: [] };
+      state = { sales: [], stock: [], creditPayments: [], transfersOut: [], changeRecords: [], products: [], stockMovements: [], ownerTransactions: [] };
     }
     renderAll();
   }, (err)=>{
     showToast('⚠️ Sync error — check your internet');
   });
-}
-
-async function loadData(){
-  // handled by subscribeToShop's realtime listener; nothing to do here
 }
 
 async function saveData(){
@@ -542,7 +925,6 @@ function openSetupScreen(){
   document.getElementById('setupScreen').classList.add('active');
   if(shopCode) document.getElementById('shopCodeInput').value = shopCode;
 }
-
 function closeSetupScreen(){
   document.getElementById('setupScreen').classList.remove('active');
 }
@@ -570,6 +952,18 @@ document.getElementById('setupToggle').querySelectorAll('button').forEach(btn=>{
     }
   });
 });
+
+function logout(){
+  if(!confirm('Log out of this shop? Make sure you remember your Shop Code ("' + shopCode + '") to log back in.')) return;
+  if(shopRef) shopRef.off();
+  localStorage.removeItem('shopCode');
+  shopCode = null;
+  state = { sales: [], stock: [], creditPayments: [], transfersOut: [], changeRecords: [], products: [], stockMovements: [], ownerTransactions: [] };
+  updateShopCodeChip();
+  closeDrawer();
+  openSetupScreen();
+  renderAll();
+}
 
 // ---------- DATE FILTER HELPERS ----------
 function inRange(dateStr, filter){
@@ -600,18 +994,15 @@ function getFilteredData(filter){
 
 function computeTotals(filter){
   const { sales, stock, payments } = getFilteredData(filter);
-  let cash=0, transfer=0, creditGiven=0, goodsIn=0, stockCash=0, stockTransfer=0;
+  let cash=0, transfer=0, stockCash=0, stockTransfer=0;
 
   sales.forEach(s=>{
     if(s.method === 'cash') cash += s.amount;
     else if(s.method === 'transfer') transfer += s.amount;
-    else if(s.method === 'credit') creditGiven += s.amount;
-    else if(s.method === 'goods') goodsIn += s.amount;
   });
   payments.forEach(p=>{
     if(p.method === 'cash') cash += p.amount;
     else if(p.method === 'transfer') transfer += p.amount;
-    else if(p.method === 'goods') goodsIn += p.amount;
   });
   stock.forEach(s=>{
     if(s.method === 'cash') stockCash += s.amount;
@@ -620,15 +1011,35 @@ function computeTotals(filter){
 
   const totalRevenue = sales.reduce((a,s)=>a+s.amount,0);
   const totalStockCost = stock.reduce((a,s)=>a+s.amount,0);
-  const profit = totalRevenue - totalStockCost;
-  const cashInHand = cash - stockCash;
 
-  // credit outstanding is always "all time", not filtered by period (it's a running balance)
+  // credit outstanding: all-time running balance, not filtered by period
   const allCreditGiven = state.sales.filter(s=>s.method==='credit').reduce((a,s)=>a+s.amount,0);
   const allCreditPaid = state.creditPayments.reduce((a,p)=>a+p.amount,0);
   const creditOutstanding = allCreditGiven - allCreditPaid;
 
-  return { cashInHand, transfer, creditOutstanding, stockSpent: totalStockCost, profit, totalRevenue };
+  // change owed: all-time running balance
+  const changeOutstanding = (state.changeRecords||[]).filter(c=>c.status==='owed').reduce((a,c)=>a+c.amount,0);
+  const changeCollectedCash = (state.changeRecords||[]).filter(c=>c.status==='collected').reduce((a,c)=>a+c.amount,0);
+
+  // transfers out: all-time running deduction from bank balance
+  const transfersOutTotal = (state.transfersOut||[]).reduce((a,t)=>a+t.amount,0);
+
+  // owner transactions: all-time
+  const ownerTakesCash = (state.ownerTransactions||[]).filter(o=>o.type==='take' && o.method==='cash').reduce((a,o)=>a+o.amount,0);
+  const ownerTakesTransfer = (state.ownerTransactions||[]).filter(o=>o.type==='take' && o.method==='transfer').reduce((a,o)=>a+o.amount,0);
+  const ownerRepayCash = (state.ownerTransactions||[]).filter(o=>o.type==='repay' && o.method==='cash').reduce((a,o)=>a+o.amount,0);
+  const ownerRepayTransfer = (state.ownerTransactions||[]).filter(o=>o.type==='repay' && o.method==='transfer').reduce((a,o)=>a+o.amount,0);
+  const netOwnerDraws = (ownerTakesCash+ownerTakesTransfer) - (ownerRepayCash+ownerRepayTransfer);
+
+  const cashInHand = cash - stockCash - changeCollectedCash - ownerTakesCash + ownerRepayCash;
+  const transferBalance = transfer - stockTransfer - transfersOutTotal - ownerTakesTransfer + ownerRepayTransfer;
+
+  const profit = totalRevenue - totalStockCost - netOwnerDraws;
+
+  return {
+    cashInHand, transferBalance, creditOutstanding, changeOutstanding,
+    stockSpent: totalStockCost, netOwnerDraws, profit, totalRevenue
+  };
 }
 
 function getCustomerBalances(){
@@ -667,17 +1078,18 @@ function renderDashboard(){
 
   const t = computeTotals(dashFilter);
   document.getElementById('statCash').textContent = fmtK(t.cashInHand);
-  document.getElementById('statTransfer').textContent = fmtK(t.transfer);
+  document.getElementById('statTransfer').textContent = fmtK(t.transferBalance);
   document.getElementById('statCredit').textContent = fmtK(t.creditOutstanding);
+  document.getElementById('statChange').textContent = fmtK(t.changeOutstanding);
   document.getElementById('statStock').textContent = fmtK(t.stockSpent);
+  document.getElementById('statOwner').textContent = fmtK(t.netOwnerDraws);
 
   const profitEl = document.getElementById('profitValue');
   profitEl.textContent = fmtK(t.profit);
   profitEl.classList.toggle('negative', t.profit < 0);
   document.getElementById('profitSub').textContent =
-    `Total sales ${fmtK(t.totalRevenue)} − stock spent ${fmtK(t.stockSpent)}`;
+    `Sales ${fmtK(t.totalRevenue)} − stock ${fmtK(t.stockSpent)} − owner draws ${fmtK(t.netOwnerDraws)}`;
 
-  // recent activity: last 6 combined events across all time
   const all = [
     ...state.sales.map(s=>({...s, kind:'sale'})),
     ...state.stock.map(s=>({...s, kind:'stock'})),
@@ -724,7 +1136,6 @@ function renderEntryRow(e, showDelete){
       </div>
     </div>`;
   }
-  // payment
   return `<div class="entry">
     <div class="left">
       <div class="item-name">Payment from ${escapeHtml(e.customer)}</div>
@@ -735,12 +1146,6 @@ function renderEntryRow(e, showDelete){
       ${delBtn}
     </div>
   </div>`;
-}
-
-function escapeHtml(str){
-  const div = document.createElement('div');
-  div.textContent = str || '';
-  return div.innerHTML;
 }
 
 // ---------- RENDER: CREDIT BOOK ----------
@@ -860,10 +1265,401 @@ function deleteEntry(kind, id){
   showToast('Entry deleted');
 }
 
+// ---------- RENDER: BANK / TRANSFERS ----------
+function renderBank(){
+  const t = computeTotals('all');
+  document.getElementById('bankBalanceValue').textContent = fmtK(t.transferBalance);
+
+  const list = (state.transfersOut||[]).slice().sort((a,b)=> (b.date+b.id).localeCompare(a.date+a.id));
+  const listEl = document.getElementById('transferList');
+  if(list.length === 0){
+    listEl.innerHTML = `<div class="empty-state"><div class="ic">🏦</div><div class="msg">No transfers sent yet.</div></div>`;
+    return;
+  }
+  listEl.innerHTML = list.map(tr => `
+    <div class="entry">
+      <div class="left">
+        <div class="item-name">To ${escapeHtml(tr.recipient)}</div>
+        <div class="meta">${tr.date}${tr.note ? ' · '+escapeHtml(tr.note) : ''}</div>
+      </div>
+      <div class="entry-row">
+        <div class="amt neg">−${fmtK(tr.amount)}</div>
+        <button class="del-btn" onclick="deleteTransfer('${tr.id}')">🗑️</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function deleteTransfer(id){
+  if(!confirm('Delete this transfer record?')) return;
+  state.transfersOut = state.transfersOut.filter(t=>t.id!==id);
+  saveData();
+  renderBank();
+  renderDashboard();
+  showToast('Transfer deleted');
+}
+
+document.getElementById('submitTransfer').addEventListener('click', async ()=>{
+  const date = document.getElementById('transferDate').value || todayStr();
+  const recipient = document.getElementById('transferRecipient').value.trim();
+  const amount = parseFloat(document.getElementById('transferAmount').value);
+  const note = document.getElementById('transferNote').value.trim();
+
+  if(!recipient){ showToast('Enter who you sent money to'); return; }
+  if(!amount || amount <= 0){ showToast('Enter a valid amount'); return; }
+
+  state.transfersOut.push({ id: uid(), date, recipient, amount, note: note||null });
+  await saveData();
+  showToast('Transfer saved ✓');
+
+  document.getElementById('transferRecipient').value='';
+  document.getElementById('transferAmount').value='';
+  document.getElementById('transferNote').value='';
+
+  renderBank();
+  renderDashboard();
+});
+
+// ---------- RENDER: CHANGE TRACKING ----------
+function renderChange(){
+  const opts = [['owed','Owed'],['collected','Collected'],['all','All']];
+  const el = document.getElementById('changeFilters');
+  el.innerHTML = opts.map(([val,label]) =>
+    `<button class="filter-chip ${val===changeFilter?'active':''}" data-val="${val}">${label}</button>`
+  ).join('');
+  el.querySelectorAll('.filter-chip').forEach(btn=>{
+    btn.addEventListener('click', ()=>{ changeFilter = btn.dataset.val; renderChange(); });
+  });
+
+  let list = (state.changeRecords||[]).slice();
+  if(changeFilter !== 'all') list = list.filter(c=>c.status===changeFilter);
+  list.sort((a,b)=> (b.date+b.id).localeCompare(a.date+a.id));
+
+  const listEl = document.getElementById('changeList');
+  if(list.length === 0){
+    listEl.innerHTML = `<div class="empty-state"><div class="ic">🔁</div><div class="msg">No change records here yet.</div></div>`;
+    return;
+  }
+
+  listEl.innerHTML = list.map(c => `
+    <div class="entry">
+      <div class="left">
+        <div class="item-name">${escapeHtml(c.customer)}</div>
+        <div class="meta">${c.date} · <span class="tag ${c.status}">${c.status === 'owed' ? 'Owed' : 'Collected'}</span>${c.note ? ' · '+escapeHtml(c.note) : ''}</div>
+      </div>
+      <div class="entry-row">
+        <div class="amt ${c.status==='owed'?'neg':'pos'}">${fmtK(c.amount)}</div>
+        ${c.status === 'owed' ? `<button class="del-btn" style="font-size:11px;opacity:1;color:var(--profit);font-weight:700;" onclick="markChangeCollected('${c.id}')">✓ Mark Collected</button>` : ''}
+        <button class="del-btn" onclick="deleteChange('${c.id}')">🗑️</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function markChangeCollected(id){
+  const rec = state.changeRecords.find(c=>c.id===id);
+  if(!rec) return;
+  rec.status = 'collected';
+  rec.collectedDate = todayStr();
+  saveData();
+  renderChange();
+  renderDashboard();
+  showToast('Marked as collected');
+}
+
+function deleteChange(id){
+  if(!confirm('Delete this change record?')) return;
+  state.changeRecords = state.changeRecords.filter(c=>c.id!==id);
+  saveData();
+  renderChange();
+  renderDashboard();
+  showToast('Change record deleted');
+}
+
+document.getElementById('submitChange').addEventListener('click', async ()=>{
+  const date = document.getElementById('changeDate').value || todayStr();
+  const customer = document.getElementById('changeCustomer').value.trim();
+  const amount = parseFloat(document.getElementById('changeAmount').value);
+  const note = document.getElementById('changeNote').value.trim();
+
+  if(!customer){ showToast('Enter the customer name'); return; }
+  if(!amount || amount <= 0){ showToast('Enter a valid amount'); return; }
+
+  state.changeRecords.push({ id: uid(), date, customer, amount, note: note||null, status:'owed' });
+  await saveData();
+  showToast('Change record saved ✓');
+
+  document.getElementById('changeCustomer').value='';
+  document.getElementById('changeAmount').value='';
+  document.getElementById('changeNote').value='';
+
+  renderChange();
+  renderDashboard();
+});
+
+// ---------- RENDER: STOCK TAKING ----------
+function renderStock(){
+  const products = (state.products||[]).slice().sort((a,b)=> a.name.localeCompare(b.name));
+  document.getElementById('productCount').textContent = products.length;
+
+  const listEl = document.getElementById('productList');
+  if(products.length === 0){
+    listEl.innerHTML = `<div class="empty-state"><div class="ic">📦</div><div class="msg">No products added yet.</div></div>`;
+  } else {
+    listEl.innerHTML = products.map(p => `
+      <div class="product-card">
+        <div class="top-row">
+          <div class="pname">${escapeHtml(p.name)}</div>
+          <div class="pqty ${p.qty <= 3 ? 'low':''}">${p.qty} left</div>
+        </div>
+        <div class="pmeta">Sell K${(p.sellPrice||0).toFixed(2)}${p.buyPrice ? ' · Buy K'+p.buyPrice.toFixed(2) : ''}</div>
+        <div class="pbtns">
+          <button onclick="openSellModal('${p.id}')">💵 Sell</button>
+          <button onclick="openRestockModal('${p.id}')">📥 Restock</button>
+          <button onclick="deleteProduct('${p.id}')">🗑️ Remove</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  const moves = (state.stockMovements||[]).slice().sort((a,b)=> (b.date+b.id).localeCompare(a.date+a.id)).slice(0,30);
+  const moveEl = document.getElementById('stockMovementList');
+  if(moves.length === 0){
+    moveEl.innerHTML = `<div class="empty-state"><div class="ic">📜</div><div class="msg">No stock movements yet.</div></div>`;
+  } else {
+    moveEl.innerHTML = moves.map(m => `
+      <div class="entry">
+        <div class="left">
+          <div class="item-name">${escapeHtml(m.productName)}</div>
+          <div class="meta">${m.date} · ${m.type === 'sale' ? 'Sold' : m.type === 'restock' ? 'Restocked' : 'Adjusted'}</div>
+        </div>
+        <div class="amt ${m.qtyChange > 0 ? 'pos':'neg'}">${m.qtyChange > 0 ? '+' : ''}${m.qtyChange}</div>
+      </div>
+    `).join('');
+  }
+}
+
+document.getElementById('submitProduct').addEventListener('click', async ()=>{
+  const name = document.getElementById('productName').value.trim();
+  const qty = parseInt(document.getElementById('productQty').value);
+  const buyPrice = parseFloat(document.getElementById('productBuyPrice').value);
+  const sellPrice = parseFloat(document.getElementById('productSellPrice').value);
+
+  if(!name){ showToast('Enter a product name'); return; }
+  if(isNaN(qty) || qty < 0){ showToast('Enter a valid quantity'); return; }
+  if(!sellPrice || sellPrice <= 0){ showToast('Enter a valid selling price'); return; }
+
+  state.products.push({ id: uid(), name, qty, buyPrice: isNaN(buyPrice) ? null : buyPrice, sellPrice });
+  await saveData();
+  showToast('Product added ✓');
+
+  document.getElementById('productName').value='';
+  document.getElementById('productQty').value='';
+  document.getElementById('productBuyPrice').value='';
+  document.getElementById('productSellPrice').value='';
+
+  renderStock();
+});
+
+function deleteProduct(id){
+  if(!confirm('Remove this product from your stock list? Past sales linked to it stay in your records.')) return;
+  state.products = state.products.filter(p=>p.id!==id);
+  saveData();
+  renderStock();
+  showToast('Product removed');
+}
+
+function openSellModal(productId){
+  const p = state.products.find(x=>x.id===productId);
+  if(!p) return;
+  document.getElementById('sellModalName').textContent = 'Sell: ' + p.name;
+  document.getElementById('sellModalBody').innerHTML = `
+    <div class="hint" style="margin-bottom:10px;">${p.qty} currently in stock</div>
+    <label>Quantity sold</label>
+    <input type="number" inputmode="numeric" id="sellQty" value="1" min="1">
+    <label>Amount (K)</label>
+    <input type="number" inputmode="decimal" id="sellAmount" value="${(p.sellPrice||0).toFixed(2)}">
+    <label>How did they pay?</label>
+    <div class="method-row" id="sellMethodRow">
+      <button data-method="cash" class="active">Cash</button>
+      <button data-method="transfer">Transfer</button>
+      <button data-method="credit">Credit</button>
+      <button data-method="goods">Goods</button>
+    </div>
+    <div id="sellCreditField" style="display:none;">
+      <label>Customer name</label>
+      <input type="text" id="sellCustomer" placeholder="e.g. Peter Kaupa">
+    </div>
+    <div id="sellGoodsField" style="display:none;">
+      <label>What goods did they give instead?</label>
+      <input type="text" id="sellGoodsNote" placeholder="e.g. 1 bag of kaukau">
+    </div>
+    <button class="submit-btn" id="sellSubmitBtn">Save Sale &amp; Update Stock</button>
+  `;
+
+  let sellMethod = 'cash';
+  const qtyInput = document.getElementById('sellQty');
+  const amountInput = document.getElementById('sellAmount');
+  qtyInput.addEventListener('input', ()=>{
+    const q = parseFloat(qtyInput.value) || 0;
+    amountInput.value = (q * (p.sellPrice||0)).toFixed(2);
+  });
+
+  document.getElementById('sellMethodRow').querySelectorAll('button').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.getElementById('sellMethodRow').querySelectorAll('button').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      sellMethod = btn.dataset.method;
+      document.getElementById('sellCreditField').style.display = (sellMethod==='credit') ? 'block' : 'none';
+      document.getElementById('sellGoodsField').style.display = (sellMethod==='goods') ? 'block' : 'none';
+    });
+  });
+
+  document.getElementById('sellSubmitBtn').addEventListener('click', async ()=>{
+    const qty = parseInt(qtyInput.value);
+    const amount = parseFloat(amountInput.value);
+    const customer = document.getElementById('sellCustomer') ? document.getElementById('sellCustomer').value.trim() : '';
+    const goodsNote = document.getElementById('sellGoodsNote') ? document.getElementById('sellGoodsNote').value.trim() : '';
+
+    if(!qty || qty <= 0){ showToast('Enter a valid quantity'); return; }
+    if(qty > p.qty){ showToast('Not enough stock — only ' + p.qty + ' left'); return; }
+    if(!amount || amount <= 0){ showToast('Enter a valid amount'); return; }
+    if(sellMethod === 'credit' && !customer){ showToast('Enter the customer name'); return; }
+    if(sellMethod === 'goods' && !goodsNote){ showToast('Describe what goods you received'); return; }
+
+    p.qty -= qty;
+    state.stockMovements.push({ id: uid(), date: todayStr(), productId: p.id, productName: p.name, type:'sale', qtyChange: -qty });
+    state.sales.push({ id: uid(), date: todayStr(), item: p.name, amount, method: sellMethod, customer: customer||null, goodsNote: goodsNote||null, productId: p.id, qtySold: qty });
+
+    await saveData();
+    showToast('Sale recorded, stock updated ✓');
+    closeSellModal();
+    renderStock();
+    renderDashboard();
+  });
+
+  document.getElementById('sellModal').classList.add('active');
+}
+function closeSellModal(){ document.getElementById('sellModal').classList.remove('active'); }
+
+function openRestockModal(productId){
+  const p = state.products.find(x=>x.id===productId);
+  if(!p) return;
+  document.getElementById('restockModalName').textContent = 'Restock: ' + p.name;
+  document.getElementById('restockModalBody').innerHTML = `
+    <div class="hint" style="margin-bottom:10px;">Currently ${p.qty} in stock</div>
+    <label>Quantity to add</label>
+    <input type="number" inputmode="numeric" id="restockQty" value="1" min="1">
+    <button class="submit-btn" id="restockSubmitBtn">Add to Stock</button>
+  `;
+  document.getElementById('restockSubmitBtn').addEventListener('click', async ()=>{
+    const qty = parseInt(document.getElementById('restockQty').value);
+    if(!qty || qty <= 0){ showToast('Enter a valid quantity'); return; }
+    p.qty += qty;
+    state.stockMovements.push({ id: uid(), date: todayStr(), productId: p.id, productName: p.name, type:'restock', qtyChange: qty });
+    await saveData();
+    showToast('Stock updated ✓');
+    closeRestockModal();
+    renderStock();
+  });
+  document.getElementById('restockModal').classList.add('active');
+}
+function closeRestockModal(){ document.getElementById('restockModal').classList.remove('active'); }
+
+// ---------- RENDER: OWNER CREDIT ----------
+function renderOwner(){
+  const txns = state.ownerTransactions||[];
+  ['Owner 1','Owner 2'].forEach((owner, idx)=>{
+    const n = idx+1;
+    const takes = txns.filter(o=>o.owner===owner && o.type==='take').reduce((a,o)=>a+o.amount,0);
+    const repay = txns.filter(o=>o.owner===owner && o.type==='repay').reduce((a,o)=>a+o.amount,0);
+    const bal = takes - repay;
+    document.getElementById('owner'+n+'Value').textContent = fmtK(bal);
+    document.getElementById('owner'+n+'Value').className = 'value ' + (bal > 0 ? 'neg' : (bal < 0 ? 'pos' : ''));
+    document.getElementById('owner'+n+'Sub').textContent = bal > 0 ? 'Owes the business' : (bal < 0 ? 'Business owes owner' : 'Settled');
+  });
+
+  const list = txns.slice().sort((a,b)=> (b.date+b.id).localeCompare(a.date+a.id));
+  const listEl = document.getElementById('ownerList');
+  if(list.length === 0){
+    listEl.innerHTML = `<div class="empty-state"><div class="ic">👤</div><div class="msg">No owner transactions yet.</div></div>`;
+    return;
+  }
+  listEl.innerHTML = list.map(o => `
+    <div class="entry">
+      <div class="left">
+        <div class="item-name">${o.type === 'take' ? 'Took money out' : 'Paid money back'}</div>
+        <div class="meta">${o.date} · <span class="tag ${o.owner==='Owner 1'?'owner1':'owner2'}">${o.owner}</span> · ${methodTag(o.method)}${o.note ? ' · '+escapeHtml(o.note) : ''}</div>
+      </div>
+      <div class="entry-row">
+        <div class="amt ${o.type==='take' ? 'neg':'pos'}">${o.type==='take'?'−':'+'}${fmtK(o.amount)}</div>
+        <button class="del-btn" onclick="deleteOwnerTxn('${o.id}')">🗑️</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function deleteOwnerTxn(id){
+  if(!confirm('Delete this owner transaction?')) return;
+  state.ownerTransactions = state.ownerTransactions.filter(o=>o.id!==id);
+  saveData();
+  renderOwner();
+  renderDashboard();
+  showToast('Transaction deleted');
+}
+
+let ownerWho = 'Owner 1';
+let ownerType = 'take';
+let ownerMethod = 'cash';
+
+document.getElementById('ownerWhoRow').querySelectorAll('button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.getElementById('ownerWhoRow').querySelectorAll('button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    ownerWho = btn.dataset.owner;
+  });
+});
+document.getElementById('ownerTypeRow').querySelectorAll('button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.getElementById('ownerTypeRow').querySelectorAll('button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    ownerType = btn.dataset.otype;
+  });
+});
+document.getElementById('ownerMethodRow').querySelectorAll('button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.getElementById('ownerMethodRow').querySelectorAll('button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    ownerMethod = btn.dataset.method;
+  });
+});
+
+document.getElementById('submitOwner').addEventListener('click', async ()=>{
+  const date = document.getElementById('ownerDate').value || todayStr();
+  const amount = parseFloat(document.getElementById('ownerAmount').value);
+  const note = document.getElementById('ownerNote').value.trim();
+
+  if(!amount || amount <= 0){ showToast('Enter a valid amount'); return; }
+
+  state.ownerTransactions.push({ id: uid(), date, owner: ownerWho, type: ownerType, amount, method: ownerMethod, note: note||null });
+  await saveData();
+  showToast('Saved ✓');
+
+  document.getElementById('ownerAmount').value='';
+  document.getElementById('ownerNote').value='';
+
+  renderOwner();
+  renderDashboard();
+});
+
 function renderAll(){
   renderDashboard();
   renderCreditBook();
   renderHistory();
+  renderBank();
+  renderChange();
+  renderStock();
+  renderOwner();
   refreshCustomerDatalist();
 }
 
@@ -873,17 +1669,16 @@ function refreshCustomerDatalist(){
   dl.innerHTML = Object.keys(balances).map(n=>`<option value="${escapeHtml(n)}">`).join('');
 }
 
-// ---------- TAB NAVIGATION ----------
-document.querySelectorAll('.tab-btn').forEach(btn=>{
-  btn.addEventListener('click', ()=>{
-    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-    btn.classList.add('active');
-    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
-    document.getElementById('view-'+btn.dataset.tab).classList.add('active');
-  });
-});
+// ---------- VIEW SWITCHING ----------
+function switchToView(name){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  const viewEl = document.getElementById('view-' + name);
+  if(viewEl) viewEl.classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===name));
+  window.scrollTo(0,0);
+}
 
-// ---------- ENTRY TYPE TOGGLE ----------
+// ---------- ENTRY TYPE TOGGLE (Add tab) ----------
 document.getElementById('entryTypeToggle').querySelectorAll('button').forEach(btn=>{
   btn.addEventListener('click', ()=>{
     document.getElementById('entryTypeToggle').querySelectorAll('button').forEach(b=>b.classList.remove('active'));
@@ -895,7 +1690,7 @@ document.getElementById('entryTypeToggle').querySelectorAll('button').forEach(bt
   });
 });
 
-// ---------- METHOD ROW TOGGLES ----------
+// ---------- METHOD ROW TOGGLES (Add tab) ----------
 function wireMethodRow(rowId, onChange){
   const row = document.getElementById(rowId);
   row.querySelectorAll('button').forEach(btn=>{
@@ -920,7 +1715,7 @@ wireMethodRow('stockMethodRow', (m)=>{ stockMethod = m; });
 let paymentMethod = 'cash';
 wireMethodRow('paymentMethodRow', (m)=>{ paymentMethod = m; });
 
-// ---------- SUBMIT HANDLERS ----------
+// ---------- SUBMIT HANDLERS (Add tab, unchanged) ----------
 document.getElementById('submitSale').addEventListener('click', async ()=>{
   const date = document.getElementById('saleDate').value || todayStr();
   const item = document.getElementById('saleItem').value.trim();
@@ -989,10 +1784,18 @@ if('serviceWorker' in navigator){
 }
 
 // ---------- INIT ----------
-(async function init(){
+(function init(){
   document.getElementById('saleDate').value = todayStr();
   document.getElementById('stockDate').value = todayStr();
   document.getElementById('paymentDate').value = todayStr();
+  document.getElementById('transferDate').value = todayStr();
+  document.getElementById('changeDate').value = todayStr();
+  document.getElementById('ownerDate').value = todayStr();
+
+  const savedTheme = localStorage.getItem('appTheme') || 'default';
+  const savedDark = localStorage.getItem('darkMode') === '1';
+  document.getElementById('darkModeToggle').checked = savedDark;
+  applyTheme(savedTheme, savedDark);
 
   document.getElementById('loading').style.display = 'none';
   document.getElementById('mainContent').style.display = 'block';
