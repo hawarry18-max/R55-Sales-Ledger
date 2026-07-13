@@ -66,7 +66,6 @@
   }
   .brand .tagline{ font-size:11px; color:var(--ink-soft); font-style:italic; }
 
-  /* Dashboard cards */
   .card-grid{ display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom: 20px; }
   .stat-card{
     background: var(--paper-raised);
@@ -90,27 +89,39 @@
   .stat-card.owner::before{ background: #2B7DA6; }
   .stat-card .label{ font-size:11px; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink-soft); font-weight:600; margin-bottom:4px; }
   .stat-card .value{ font-family:'IBM Plex Mono', monospace; font-size:19px; font-weight:600; }
+  .stat-card .edit-hint{ font-size:9.5px; color:var(--ink-soft); margin-top:2px; }
 
   .profit-card{
     background: linear-gradient(135deg, var(--teal-dark), var(--teal));
     color: var(--paper-raised);
     border-radius: 12px;
     padding: 18px 18px;
-    margin-bottom: 20px;
+    margin-bottom: 12px;
     box-shadow: var(--shadow);
   }
   .profit-card .label{ font-size:12px; text-transform:uppercase; letter-spacing:0.06em; opacity:0.85; font-weight:600; }
   .profit-card .value{ font-family:'IBM Plex Mono', monospace; font-size:34px; font-weight:600; margin-top:4px; }
   .profit-card .sub{ font-size:12px; opacity:0.8; margin-top:6px; }
   .profit-card .value.negative{ color:#F4C7BB; }
+  .profit-card .subrow{
+    display:flex; justify-content:space-between; align-items:center;
+    background: rgba(255,255,255,0.12); border-radius:8px; padding:8px 12px; margin-top:12px;
+  }
+  .profit-card .subrow .slabel{ font-size:11px; text-transform:uppercase; letter-spacing:0.04em; opacity:0.85; }
+  .profit-card .subrow .svalue{ font-family:'IBM Plex Mono'; font-weight:600; font-size:16px; }
 
-  .filter-row{ display:flex; gap:6px; margin-bottom:14px; flex-wrap:wrap; }
+  .filter-row{ display:flex; gap:6px; margin-bottom:14px; flex-wrap:wrap; align-items:center; }
   .filter-chip{
     font-family:'Inter'; font-size:12px; font-weight:600;
     padding: 6px 12px; border-radius:20px; border:1px solid var(--line);
     background: var(--paper-raised); color: var(--ink-soft); cursor:pointer;
   }
   .filter-chip.active{ background: var(--teal); color:var(--paper-raised); border-color:var(--teal); }
+  .cal-btn{
+    font-family:'Inter'; font-size:12px; font-weight:600;
+    padding: 6px 12px; border-radius:20px; border:1px solid var(--teal);
+    background: var(--paper-raised); color: var(--teal-dark); cursor:pointer;
+  }
 
   h2.section-title{
     font-family:'Space Grotesk', sans-serif; font-size:15px; font-weight:600;
@@ -125,7 +136,6 @@
     color: var(--teal-dark); background:none; border:none; cursor:pointer; padding:4px 0; margin-bottom:6px;
   }
 
-  /* Tabs (nav) */
   .tabbar{
     position: fixed; bottom:0; left:0; right:0;
     background: var(--paper-raised); border-top: 1px solid var(--line);
@@ -149,7 +159,6 @@
   .view{ display:none; }
   .view.active{ display:block; }
 
-  /* Forms */
   .form-block{
     background: var(--paper-raised); border:1px solid var(--line); border-radius:12px;
     padding: 16px; box-shadow: var(--shadow); margin-bottom:16px;
@@ -164,7 +173,7 @@
 
   label{ display:block; font-size:12px; font-weight:600; color:var(--ink-soft); margin: 12px 0 5px; }
   label:first-of-type{ margin-top:0; }
-  input[type=text], input[type=number], input[type=date], select, textarea{
+  input[type=text], input[type=number], input[type=date], input[type=password], select, textarea{
     width:100%; padding:11px 12px; border-radius:8px; border:1.5px solid var(--line);
     background: var(--paper); font-family:'Inter'; font-size:14.5px; color: var(--ink);
   }
@@ -185,10 +194,10 @@
   }
   .submit-btn:active{ transform: scale(0.99); }
   .submit-btn.secondary{ background: var(--paper); color: var(--teal-dark); border: 1.5px solid var(--teal); }
+  .submit-btn.small{ padding:9px; font-size:13px; margin-top:8px; }
 
   .hint{ font-size:11.5px; color:var(--ink-soft); margin-top:4px; }
 
-  /* Entry list */
   .entry{
     display:flex; justify-content:space-between; align-items:center; gap:10px;
     background: var(--paper-raised); border:1px solid var(--line); border-radius:10px;
@@ -224,7 +233,6 @@
   .empty-state .ic{ font-size:32px; margin-bottom:8px; }
   .empty-state .msg{ font-size:13.5px; }
 
-  /* Credit / product / owner cards */
   .customer-card{
     background: var(--paper-raised); border:1px solid var(--line); border-radius:10px;
     padding: 13px 14px; margin-bottom:9px; cursor:pointer;
@@ -286,7 +294,6 @@
 
   .loading-msg{ text-align:center; padding:60px 20px; color:var(--ink-soft); font-size:14px; }
 
-  /* Setup / Shop Code screen */
   .setup-screen{
     position: fixed; inset:0; background: var(--paper); z-index: 500;
     display:none; align-items:center; justify-content:center; padding:24px;
@@ -306,6 +313,12 @@
     color: var(--ink-soft); cursor:pointer;
   }
   .setup-toggle button.active{ border-color: var(--teal); background: var(--teal); color: var(--paper-raised); }
+  .code-input-row{ display:flex; gap:6px; align-items:stretch; }
+  .code-input-row input{ flex:1; }
+  .eye-btn{
+    flex-shrink:0; width:44px; border-radius:8px; border:1.5px solid var(--line);
+    background: var(--paper); font-size:16px; cursor:pointer; color: var(--ink-soft);
+  }
 
   .shop-code-chip{
     font-family:'IBM Plex Mono'; font-size:11px; color: var(--ink-soft);
@@ -318,7 +331,6 @@
   }
   .sync-dot.offline{ background: var(--debt); }
 
-  /* Slide-out drawer */
   .drawer-overlay{
     position:fixed; inset:0; background:rgba(20,25,22,0.45); z-index:300;
     display:none;
@@ -365,6 +377,45 @@
   .theme-swatch.active{ border-color: var(--teal); background: var(--paper-raised); }
   .swatch-dots{ display:flex; gap:4px; }
   .swatch-dot{ width:16px; height:16px; border-radius:50%; }
+
+  /* Stock checklist for multi-item sale */
+  .stock-check-item{
+    display:flex; align-items:center; gap:10px; padding:10px 8px; border-bottom:1px solid var(--line);
+  }
+  .stock-check-item:last-child{ border-bottom:none; }
+  .stock-check-item input[type=checkbox]{ width:20px; height:20px; flex-shrink:0; }
+  .stock-check-item .sci-name{ flex:1; font-size:14px; font-weight:600; min-width:0; }
+  .stock-check-item .sci-avail{ font-size:11px; color:var(--ink-soft); }
+  .stock-check-item .sci-qty{ width:60px; padding:6px; text-align:center; }
+  .checklist-box{
+    background: var(--paper); border:1.5px solid var(--line); border-radius:8px; margin-top:6px; max-height:280px; overflow-y:auto;
+  }
+  .checklist-total{
+    display:flex; justify-content:space-between; align-items:center; margin-top:10px;
+    font-family:'IBM Plex Mono'; font-weight:600; font-size:16px; color: var(--teal-dark);
+  }
+
+  /* Calendar */
+  .cal-tabs{ display:flex; gap:6px; margin-bottom:14px; }
+  .cal-tabs button{
+    flex:1; padding:8px; border-radius:8px; border:1.5px solid var(--line);
+    background:var(--paper); font-weight:600; font-size:12.5px; color:var(--ink-soft); cursor:pointer;
+  }
+  .cal-tabs button.active{ background:var(--teal); color:var(--paper-raised); border-color:var(--teal); }
+  .cal-nav{ display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+  .cal-nav button{ background:var(--paper); border:1px solid var(--line); border-radius:6px; width:30px; height:30px; cursor:pointer; }
+  .cal-nav .cal-label{ font-family:'Space Grotesk'; font-weight:600; font-size:14px; }
+  .cal-grid{ display:grid; grid-template-columns: repeat(7,1fr); gap:4px; }
+  .cal-day-head{ text-align:center; font-size:10px; font-weight:700; color:var(--ink-soft); padding:4px 0; }
+  .cal-cell{
+    aspect-ratio:1; display:flex; align-items:center; justify-content:center; border-radius:8px;
+    font-size:13px; font-weight:600; background: var(--paper); border:1px solid var(--line); cursor:pointer;
+  }
+  .cal-cell.empty{ visibility:hidden; cursor:default; }
+  .cal-cell.today{ border-color: var(--teal); border-width:2px; }
+  .cal-cell.has-data{ background: var(--profit-bg); color: var(--teal-dark); }
+  .day-detail-section{ margin-bottom:14px; }
+  .day-detail-section h4{ font-family:'Space Grotesk'; font-size:13px; color:var(--teal-dark); margin:0 0 6px; }
 </style>
 </head>
 <body>
@@ -399,15 +450,20 @@
       <div class="filter-row" id="dashFilters"></div>
 
       <div class="profit-card">
-        <div class="label">Profit (sales minus stock &amp; owner draws)</div>
-        <div class="value" id="profitValue">K0.00</div>
-        <div class="sub" id="profitSub"></div>
+        <div class="label">What I Made</div>
+        <div class="value" id="madeValue">K0.00</div>
+        <div class="sub" id="madeSub"></div>
+        <div class="subrow">
+          <span class="slabel">Profit</span>
+          <span class="svalue" id="profitValue">K0.00</span>
+        </div>
       </div>
 
       <div class="card-grid">
-        <div class="stat-card cash">
+        <div class="stat-card cash clickable" onclick="switchToView('cash')">
           <div class="label">Cash in hand</div>
           <div class="value" id="statCash">K0.00</div>
+          <div class="edit-hint">Tap to view / adjust</div>
         </div>
         <div class="stat-card transfer clickable" onclick="switchToView('bank')">
           <div class="label">Bank / Transfer</div>
@@ -435,7 +491,7 @@
       <div id="recentList"></div>
     </div>
 
-    <!-- ADD (unchanged) -->
+    <!-- ADD -->
     <div class="view" id="view-add">
       <div class="type-toggle" id="entryTypeToggle">
         <button data-type="sale" class="active">🛒 Sale</button>
@@ -444,14 +500,31 @@
       </div>
 
       <div class="form-block" id="form-sale">
+        <div class="type-toggle" id="saleSourceToggle">
+          <button data-source="stock" class="active">📦 From Stock</button>
+          <button data-source="custom">✏️ Custom Item</button>
+        </div>
+
         <label>Date</label>
         <input type="date" id="saleDate">
 
-        <label>What did they buy?</label>
-        <input type="text" id="saleItem" placeholder="e.g. Rice + 2 Coke + cigarettes">
+        <!-- Custom item fields -->
+        <div id="saleCustomFields">
+          <label>What did they buy?</label>
+          <input type="text" id="saleItem" placeholder="e.g. Rice + 2 Coke + cigarettes">
+          <label>Amount (K)</label>
+          <input type="number" inputmode="decimal" id="saleAmount" placeholder="0.00">
+        </div>
 
-        <label>Amount (K)</label>
-        <input type="number" inputmode="decimal" id="saleAmount" placeholder="0.00">
+        <!-- Stock checklist fields -->
+        <div id="saleStockFields" style="display:none;">
+          <label>Select items sold</label>
+          <div class="checklist-box" id="saleChecklistBox"></div>
+          <div class="checklist-total">
+            <span>Total</span>
+            <span id="saleChecklistTotal">K0.00</span>
+          </div>
+        </div>
 
         <label>How did they pay?</label>
         <div class="method-row" id="saleMethodRow">
@@ -477,58 +550,50 @@
       <div class="form-block" id="form-stock" style="display:none;">
         <label>Date</label>
         <input type="date" id="stockDate">
-
         <label>What stock did you buy?</label>
         <input type="text" id="stockItem" placeholder="e.g. Crates of soft drink, rice bags">
-
         <label>Amount spent (K)</label>
         <input type="number" inputmode="decimal" id="stockAmount" placeholder="0.00">
-
         <label>How did you pay?</label>
         <div class="method-row" id="stockMethodRow">
           <button data-method="cash" class="active">Cash</button>
           <button data-method="transfer">Transfer</button>
         </div>
-
         <button class="submit-btn" id="submitStock">Save Stock Purchase</button>
       </div>
 
       <div class="form-block" id="form-payment" style="display:none;">
         <label>Date</label>
         <input type="date" id="paymentDate">
-
         <label>Customer name</label>
         <input type="text" id="paymentCustomer" placeholder="e.g. Peter Kaupa" list="customerList">
         <datalist id="customerList"></datalist>
         <div class="hint">Type an existing name or a new one</div>
-
         <label>Amount paid (K)</label>
         <input type="number" inputmode="decimal" id="paymentAmount" placeholder="0.00">
-
         <label>Paid with</label>
         <div class="method-row" id="paymentMethodRow">
           <button data-method="cash" class="active">Cash</button>
           <button data-method="transfer">Transfer</button>
           <button data-method="goods">Goods</button>
         </div>
-
         <button class="submit-btn" id="submitPayment">Save Payment</button>
       </div>
     </div>
 
-    <!-- CREDIT BOOK (unchanged) -->
+    <!-- CREDIT BOOK -->
     <div class="view" id="view-credit">
       <h2 class="section-title">Who owes you <span class="count" id="creditCustCount">0</span></h2>
       <div id="creditList"></div>
     </div>
 
-    <!-- HISTORY (unchanged) -->
+    <!-- HISTORY -->
     <div class="view" id="view-history">
       <div class="filter-row" id="historyFilters"></div>
       <div id="historyList"></div>
     </div>
 
-    <!-- NEW: BANK / TRANSFERS -->
+    <!-- BANK / TRANSFERS -->
     <div class="view" id="view-bank">
       <button class="back-link" onclick="switchToView('dashboard')">← Back to Home</button>
       <h2 class="section-title">🏦 Bank / Transfer Balance</h2>
@@ -536,7 +601,6 @@
         <div class="label">Current transfer/bank balance</div>
         <div class="value" id="bankBalanceValue">K0.00</div>
       </div>
-
       <div class="form-block">
         <label>Date</label>
         <input type="date" id="transferDate">
@@ -548,16 +612,14 @@
         <input type="text" id="transferNote" placeholder="e.g. school fees, restock supplier">
         <button class="submit-btn" id="submitTransfer">Save Transfer</button>
       </div>
-
       <h2 class="section-title">Transfer history</h2>
       <div id="transferList"></div>
     </div>
 
-    <!-- NEW: CHANGE TRACKING -->
+    <!-- CHANGE TRACKING -->
     <div class="view" id="view-change">
       <button class="back-link" onclick="switchToView('dashboard')">← Back to Home</button>
       <h2 class="section-title">🔁 Change Owed to Customers</h2>
-
       <div class="form-block">
         <label>Date</label>
         <input type="date" id="changeDate">
@@ -569,15 +631,19 @@
         <input type="text" id="changeNote" placeholder="e.g. no coins at the time">
         <button class="submit-btn" id="submitChange">Save Change Record</button>
       </div>
-
       <div class="filter-row" id="changeFilters"></div>
       <div id="changeList"></div>
     </div>
 
-    <!-- NEW: STOCK TAKING -->
+    <!-- STOCK TAKING -->
     <div class="view" id="view-stock-taking">
       <button class="back-link" onclick="switchToView('dashboard')">← Back to Home</button>
       <h2 class="section-title">📦 Stock Taking</h2>
+
+      <div class="profit-card" style="margin-bottom:16px;">
+        <div class="label">Total stock value (at selling price)</div>
+        <div class="value" id="stockTotalValue">K0.00</div>
+      </div>
 
       <div class="form-block">
         <label>Product name</label>
@@ -598,7 +664,7 @@
       <div id="stockMovementList"></div>
     </div>
 
-    <!-- NEW: OWNER CREDIT -->
+    <!-- OWNER CREDIT -->
     <div class="view" id="view-owner">
       <button class="back-link" onclick="switchToView('dashboard')">← Back to Home</button>
       <h2 class="section-title">👤 Shop Owner Personal Credit</h2>
@@ -629,13 +695,27 @@
         </div>
         <label>Date</label>
         <input type="date" id="ownerDate">
-        <label>Amount (K)</label>
-        <input type="number" inputmode="decimal" id="ownerAmount" placeholder="0.00">
-        <label>Method</label>
+
+        <label>What was taken?</label>
         <div class="method-row" id="ownerMethodRow">
           <button data-method="cash" class="active">Cash</button>
           <button data-method="transfer">Transfer</button>
+          <button data-method="goods">Goods from Stock</button>
         </div>
+
+        <div id="ownerCashFields">
+          <label>Amount (K)</label>
+          <input type="number" inputmode="decimal" id="ownerAmount" placeholder="0.00">
+        </div>
+
+        <div id="ownerGoodsFields" style="display:none;">
+          <label>Product</label>
+          <select id="ownerProductSelect"></select>
+          <label>Quantity</label>
+          <input type="number" inputmode="numeric" id="ownerProductQty" placeholder="1">
+          <div class="hint" id="ownerGoodsValueHint">Value: K0.00</div>
+        </div>
+
         <label>Note (optional)</label>
         <input type="text" id="ownerNote" placeholder="e.g. personal expense">
         <button class="submit-btn" id="submitOwner">Save Transaction</button>
@@ -643,6 +723,58 @@
 
       <h2 class="section-title">History</h2>
       <div id="ownerList"></div>
+    </div>
+
+    <!-- CASH ON HAND -->
+    <div class="view" id="view-cash">
+      <button class="back-link" onclick="switchToView('dashboard')">← Back to Home</button>
+      <h2 class="section-title">💰 Cash on Hand</h2>
+
+      <div class="profit-card" style="margin-bottom:16px;">
+        <div class="label">Current cash balance</div>
+        <div class="value" id="cashBalanceValue">K0.00</div>
+        <div class="sub">Includes your K10 daily float</div>
+      </div>
+
+      <div class="form-block">
+        <label>Correct the balance (if it doesn't match what's in the till)</label>
+        <input type="number" inputmode="decimal" id="cashCorrectAmount" placeholder="Enter actual cash counted">
+        <button class="submit-btn secondary" id="submitCashCorrect">Save Correction</button>
+      </div>
+
+      <div class="form-block">
+        <h2 class="section-title" style="margin-top:0;">💸 Cash Back</h2>
+        <div class="hint" style="margin-bottom:8px;">Record cash you're taking out of today's sales (till).</div>
+        <label>Amount (K)</label>
+        <input type="number" inputmode="decimal" id="cashBackAmount" placeholder="0.00">
+        <label>Note (optional)</label>
+        <input type="text" id="cashBackNote" placeholder="e.g. banking, supplier payment">
+        <button class="submit-btn" id="submitCashBack">Save Cash Back</button>
+        <button class="submit-btn small secondary" id="collectTodayBtn">Collect Today's Sales (leave K10 float)</button>
+      </div>
+
+      <h2 class="section-title">Cash history</h2>
+      <div id="cashHistoryList"></div>
+    </div>
+
+    <!-- PROFIT SAVINGS -->
+    <div class="view" id="view-savings">
+      <button class="back-link" onclick="switchToView('dashboard')">← Back to Home</button>
+      <h2 class="section-title">💰 Profit Savings Recommendation</h2>
+
+      <div class="form-block">
+        <label>What % of today's profit do you want to save?</label>
+        <div class="method-row" id="savingsPercentRow">
+          <button data-pct="10">10%</button>
+          <button data-pct="20" class="active">20%</button>
+          <button data-pct="30">30%</button>
+          <button data-pct="50">50%</button>
+        </div>
+        <label>Or enter a custom % (optional)</label>
+        <input type="number" inputmode="numeric" id="savingsCustomPct" placeholder="e.g. 25">
+      </div>
+
+      <div id="savingsResult"></div>
     </div>
 
   </div>
@@ -659,17 +791,6 @@
   </div>
 </div>
 
-<!-- Quick-sell from stock modal -->
-<div class="modal-overlay" id="sellModal">
-  <div class="modal">
-    <div class="modal-head">
-      <h3 id="sellModalName">Sell Product</h3>
-      <button class="close-btn" onclick="closeSellModal()">×</button>
-    </div>
-    <div id="sellModalBody"></div>
-  </div>
-</div>
-
 <!-- Restock modal -->
 <div class="modal-overlay" id="restockModal">
   <div class="modal">
@@ -678,6 +799,32 @@
       <button class="close-btn" onclick="closeRestockModal()">×</button>
     </div>
     <div id="restockModalBody"></div>
+  </div>
+</div>
+
+<!-- Calendar modal -->
+<div class="modal-overlay" id="calendarModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Reports Calendar</h3>
+      <button class="close-btn" onclick="closeCalendarModal()">×</button>
+    </div>
+    <div class="cal-tabs" id="calTabs">
+      <button data-calmode="week" class="active">Week</button>
+      <button data-calmode="month">Month</button>
+    </div>
+    <div id="calBody"></div>
+  </div>
+</div>
+
+<!-- Day detail modal -->
+<div class="modal-overlay" id="dayDetailModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="dayDetailTitle">Day</h3>
+      <button class="close-btn" onclick="closeDayDetailModal()">×</button>
+    </div>
+    <div id="dayDetailBody"></div>
   </div>
 </div>
 
@@ -693,7 +840,10 @@
       <button data-mode="new">Create a new shop</button>
     </div>
     <label>Shop Code</label>
-    <input type="text" id="shopCodeInput" placeholder="e.g. R55SHOP" style="text-transform:uppercase;">
+    <div class="code-input-row">
+      <input type="password" id="shopCodeInput" placeholder="e.g. R55SHOP" style="text-transform:uppercase;">
+      <button type="button" class="eye-btn" id="codeEyeBtn">👁</button>
+    </div>
     <div class="hint" id="setupHint">Ask your partner for their Shop Code, or make one up if this is the first phone.</div>
     <button class="submit-btn" id="connectShopBtn">Connect</button>
   </div>
@@ -703,12 +853,15 @@
 <div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
 <div class="drawer" id="drawer">
   <div class="drawer-head">uSales</div>
-  <div class="drawer-sub">Shop code: <span id="drawerShopCode">—</span></div>
+  <div class="drawer-sub">Shop code: <span id="drawerShopCode">••••••</span></div>
 
   <button class="drawer-btn" onclick="switchToView('bank'); closeDrawer();">🏦 Bank / Transfers</button>
   <button class="drawer-btn" onclick="switchToView('change'); closeDrawer();">🔁 Change Owed</button>
   <button class="drawer-btn" onclick="switchToView('stock-taking'); closeDrawer();">📦 Stock Taking</button>
   <button class="drawer-btn" onclick="switchToView('owner'); closeDrawer();">👤 Owner Credit</button>
+  <button class="drawer-btn" onclick="switchToView('cash'); closeDrawer();">💰 Cash on Hand</button>
+  <button class="drawer-btn" onclick="switchToView('savings'); closeDrawer();">📈 Profit Savings</button>
+  <button class="drawer-btn" onclick="openCalendarModal(); closeDrawer();">📅 Reports Calendar</button>
 
   <hr class="drawer-hr">
 
@@ -738,11 +891,14 @@
 </div>
 
 <script>
-let state = { sales: [], stock: [], creditPayments: [], transfersOut: [], changeRecords: [], products: [], stockMovements: [], ownerTransactions: [] };
+const CASH_FLOAT = 10;
+
+let state = { sales: [], stock: [], creditPayments: [], transfersOut: [], changeRecords: [], products: [], stockMovements: [], ownerTransactions: [], cashBacks: [], cashAdjustments: [] };
 let dashFilter = 'all';
 let historyFilter = 'all';
 let changeFilter = 'owed';
 let currentEntryType = 'sale';
+let saleSource = 'stock';
 
 function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
 function fmtK(n){ return 'K' + (Math.round(n*100)/100).toLocaleString(undefined,{minimumFractionDigits:2, maximumFractionDigits:2}); }
@@ -851,7 +1007,6 @@ document.getElementById('darkModeToggle').addEventListener('change', (e)=>{
 function openDrawer(){
   document.getElementById('drawer').classList.add('active');
   document.getElementById('drawerOverlay').classList.add('active');
-  document.getElementById('drawerShopCode').textContent = shopCode || '—';
 }
 function closeDrawer(){
   document.getElementById('drawer').classList.remove('active');
@@ -884,9 +1039,15 @@ rtdb.ref('.info/connected').on('value', (snap)=>{
   setSyncStatus(snap.val() === true);
 });
 
+function maskCode(code){
+  return code ? '•'.repeat(Math.min(code.length, 10)) : '';
+}
+
 function updateShopCodeChip(){
   const label = document.getElementById('shopCodeLabel');
-  if(label) label.textContent = shopCode ? shopCode : 'Connect';
+  if(label) label.textContent = shopCode ? maskCode(shopCode) : 'Connect';
+  const drawerLabel = document.getElementById('drawerShopCode');
+  if(drawerLabel) drawerLabel.textContent = shopCode ? maskCode(shopCode) : '—';
 }
 
 function subscribeToShop(){
@@ -903,8 +1064,10 @@ function subscribeToShop(){
       state.products = data.products || [];
       state.stockMovements = data.stockMovements || [];
       state.ownerTransactions = data.ownerTransactions || [];
+      state.cashBacks = data.cashBacks || [];
+      state.cashAdjustments = data.cashAdjustments || [];
     } else {
-      state = { sales: [], stock: [], creditPayments: [], transfersOut: [], changeRecords: [], products: [], stockMovements: [], ownerTransactions: [] };
+      state = { sales: [], stock: [], creditPayments: [], transfersOut: [], changeRecords: [], products: [], stockMovements: [], ownerTransactions: [], cashBacks: [], cashAdjustments: [] };
     }
     renderAll();
   }, (err)=>{
@@ -929,6 +1092,13 @@ function closeSetupScreen(){
   document.getElementById('setupScreen').classList.remove('active');
 }
 
+document.getElementById('codeEyeBtn').addEventListener('click', ()=>{
+  const input = document.getElementById('shopCodeInput');
+  const btn = document.getElementById('codeEyeBtn');
+  if(input.type === 'password'){ input.type = 'text'; btn.textContent = '🙈'; }
+  else { input.type = 'password'; btn.textContent = '👁'; }
+});
+
 document.getElementById('connectShopBtn').addEventListener('click', ()=>{
   const val = document.getElementById('shopCodeInput').value.trim().toUpperCase().replace(/[.#$\[\]\/\s]/g,'');
   if(!val){ showToast('Enter a shop code'); return; }
@@ -937,7 +1107,7 @@ document.getElementById('connectShopBtn').addEventListener('click', ()=>{
   updateShopCodeChip();
   subscribeToShop();
   closeSetupScreen();
-  showToast('Connected to ' + shopCode);
+  showToast('Connected');
 });
 
 document.getElementById('setupToggle').querySelectorAll('button').forEach(btn=>{
@@ -954,11 +1124,11 @@ document.getElementById('setupToggle').querySelectorAll('button').forEach(btn=>{
 });
 
 function logout(){
-  if(!confirm('Log out of this shop? Make sure you remember your Shop Code ("' + shopCode + '") to log back in.')) return;
+  if(!confirm('Log out of this shop? Make sure you remember your Shop Code to log back in.')) return;
   if(shopRef) shopRef.off();
   localStorage.removeItem('shopCode');
   shopCode = null;
-  state = { sales: [], stock: [], creditPayments: [], transfersOut: [], changeRecords: [], products: [], stockMovements: [], ownerTransactions: [] };
+  state = { sales: [], stock: [], creditPayments: [], transfersOut: [], changeRecords: [], products: [], stockMovements: [], ownerTransactions: [], cashBacks: [], cashAdjustments: [] };
   updateShopCodeChip();
   closeDrawer();
   openSetupScreen();
@@ -970,9 +1140,7 @@ function inRange(dateStr, filter){
   if(filter === 'all') return true;
   const d = new Date(dateStr + 'T00:00:00');
   const now = new Date();
-  if(filter === 'today'){
-    return dateStr === todayStr();
-  }
+  if(filter === 'today'){ return dateStr === todayStr(); }
   if(filter === 'week'){
     const weekAgo = new Date(now); weekAgo.setDate(now.getDate()-7);
     return d >= weekAgo;
@@ -992,47 +1160,50 @@ function getFilteredData(filter){
   };
 }
 
-function computeTotals(filter){
-  const { sales, stock, payments } = getFilteredData(filter);
-  let cash=0, transfer=0, stockCash=0, stockTransfer=0;
+// True running balances (always all-time, not filtered) as of "up to and including" a given date (default: far future = everything)
+function computeCashOnHand(upToDate){
+  const cap = upToDate || '9999-12-31';
+  const cash = state.sales.filter(s=>s.method==='cash' && s.date<=cap).reduce((a,s)=>a+s.amount,0)
+    + state.creditPayments.filter(p=>p.method==='cash' && p.date<=cap).reduce((a,p)=>a+p.amount,0);
+  const stockCash = state.stock.filter(s=>s.method==='cash' && s.date<=cap).reduce((a,s)=>a+s.amount,0);
+  const changeCollectedCash = (state.changeRecords||[]).filter(c=>c.status==='collected' && (c.collectedDate||c.date)<=cap).reduce((a,c)=>a+c.amount,0);
+  const ownerTakesCash = (state.ownerTransactions||[]).filter(o=>o.type==='take' && o.method==='cash' && o.date<=cap).reduce((a,o)=>a+o.amount,0);
+  const ownerRepayCash = (state.ownerTransactions||[]).filter(o=>o.type==='repay' && o.method==='cash' && o.date<=cap).reduce((a,o)=>a+o.amount,0);
+  const cashBacksTotal = (state.cashBacks||[]).filter(c=>c.date<=cap).reduce((a,c)=>a+c.amount,0);
+  const adjustmentsTotal = (state.cashAdjustments||[]).filter(a=>a.date<=cap).reduce((a,c)=>a+c.amount,0);
+  return CASH_FLOAT + cash - stockCash - changeCollectedCash - ownerTakesCash + ownerRepayCash - cashBacksTotal + adjustmentsTotal;
+}
 
-  sales.forEach(s=>{
-    if(s.method === 'cash') cash += s.amount;
-    else if(s.method === 'transfer') transfer += s.amount;
-  });
-  payments.forEach(p=>{
-    if(p.method === 'cash') cash += p.amount;
-    else if(p.method === 'transfer') transfer += p.amount;
-  });
-  stock.forEach(s=>{
-    if(s.method === 'cash') stockCash += s.amount;
-    else stockTransfer += s.amount;
-  });
+function computeTransferBalance(upToDate){
+  const cap = upToDate || '9999-12-31';
+  const transfer = state.sales.filter(s=>s.method==='transfer' && s.date<=cap).reduce((a,s)=>a+s.amount,0)
+    + state.creditPayments.filter(p=>p.method==='transfer' && p.date<=cap).reduce((a,p)=>a+p.amount,0);
+  const stockTransfer = state.stock.filter(s=>s.method==='transfer' && s.date<=cap).reduce((a,s)=>a+s.amount,0);
+  const transfersOutTotal = (state.transfersOut||[]).filter(t=>t.date<=cap).reduce((a,t)=>a+t.amount,0);
+  const ownerTakesTransfer = (state.ownerTransactions||[]).filter(o=>o.type==='take' && o.method==='transfer' && o.date<=cap).reduce((a,o)=>a+o.amount,0);
+  const ownerRepayTransfer = (state.ownerTransactions||[]).filter(o=>o.type==='repay' && o.method==='transfer' && o.date<=cap).reduce((a,o)=>a+o.amount,0);
+  return transfer - stockTransfer - transfersOutTotal - ownerTakesTransfer + ownerRepayTransfer;
+}
+
+function computeTotals(filter){
+  const { sales, stock } = getFilteredData(filter);
 
   const totalRevenue = sales.reduce((a,s)=>a+s.amount,0);
   const totalStockCost = stock.reduce((a,s)=>a+s.amount,0);
 
-  // credit outstanding: all-time running balance, not filtered by period
   const allCreditGiven = state.sales.filter(s=>s.method==='credit').reduce((a,s)=>a+s.amount,0);
   const allCreditPaid = state.creditPayments.reduce((a,p)=>a+p.amount,0);
   const creditOutstanding = allCreditGiven - allCreditPaid;
 
-  // change owed: all-time running balance
   const changeOutstanding = (state.changeRecords||[]).filter(c=>c.status==='owed').reduce((a,c)=>a+c.amount,0);
-  const changeCollectedCash = (state.changeRecords||[]).filter(c=>c.status==='collected').reduce((a,c)=>a+c.amount,0);
 
-  // transfers out: all-time running deduction from bank balance
-  const transfersOutTotal = (state.transfersOut||[]).reduce((a,t)=>a+t.amount,0);
+  const ownerTxnsInPeriod = (state.ownerTransactions||[]).filter(o=>inRange(o.date, filter));
+  const takesInPeriod = ownerTxnsInPeriod.filter(o=>o.type==='take').reduce((a,o)=>a+o.amount,0);
+  const repayInPeriod = ownerTxnsInPeriod.filter(o=>o.type==='repay').reduce((a,o)=>a+o.amount,0);
+  const netOwnerDraws = takesInPeriod - repayInPeriod;
 
-  // owner transactions: all-time
-  const ownerTakesCash = (state.ownerTransactions||[]).filter(o=>o.type==='take' && o.method==='cash').reduce((a,o)=>a+o.amount,0);
-  const ownerTakesTransfer = (state.ownerTransactions||[]).filter(o=>o.type==='take' && o.method==='transfer').reduce((a,o)=>a+o.amount,0);
-  const ownerRepayCash = (state.ownerTransactions||[]).filter(o=>o.type==='repay' && o.method==='cash').reduce((a,o)=>a+o.amount,0);
-  const ownerRepayTransfer = (state.ownerTransactions||[]).filter(o=>o.type==='repay' && o.method==='transfer').reduce((a,o)=>a+o.amount,0);
-  const netOwnerDraws = (ownerTakesCash+ownerTakesTransfer) - (ownerRepayCash+ownerRepayTransfer);
-
-  const cashInHand = cash - stockCash - changeCollectedCash - ownerTakesCash + ownerRepayCash;
-  const transferBalance = transfer - stockTransfer - transfersOutTotal - ownerTakesTransfer + ownerRepayTransfer;
+  const cashInHand = computeCashOnHand();
+  const transferBalance = computeTransferBalance();
 
   const profit = totalRevenue - totalStockCost - netOwnerDraws;
 
@@ -1040,6 +1211,10 @@ function computeTotals(filter){
     cashInHand, transferBalance, creditOutstanding, changeOutstanding,
     stockSpent: totalStockCost, netOwnerDraws, profit, totalRevenue
   };
+}
+
+function totalStockValue(){
+  return (state.products||[]).reduce((a,p)=>a + (p.qty * (p.sellPrice||0)), 0);
 }
 
 function getCustomerBalances(){
@@ -1062,19 +1237,19 @@ function getCustomerBalances(){
 }
 
 // ---------- RENDER: DASHBOARD ----------
-function renderFilterChips(containerId, activeVal, onSelect){
+function renderFilterChips(containerId, activeVal, onSelect, withCalendar){
   const el = document.getElementById(containerId);
   const opts = [['today','Today'],['week','7 Days'],['month','This Month'],['all','All Time']];
   el.innerHTML = opts.map(([val,label]) =>
     `<button class="filter-chip ${val===activeVal?'active':''}" data-val="${val}">${label}</button>`
-  ).join('');
+  ).join('') + (withCalendar ? `<button class="cal-btn" onclick="openCalendarModal()">📅 Calendar</button>` : '');
   el.querySelectorAll('.filter-chip').forEach(btn=>{
     btn.addEventListener('click', ()=>{ onSelect(btn.dataset.val); });
   });
 }
 
 function renderDashboard(){
-  renderFilterChips('dashFilters', dashFilter, (val)=>{ dashFilter = val; renderDashboard(); });
+  renderFilterChips('dashFilters', dashFilter, (val)=>{ dashFilter = val; renderDashboard(); }, true);
 
   const t = computeTotals(dashFilter);
   document.getElementById('statCash').textContent = fmtK(t.cashInHand);
@@ -1084,11 +1259,12 @@ function renderDashboard(){
   document.getElementById('statStock').textContent = fmtK(t.stockSpent);
   document.getElementById('statOwner').textContent = fmtK(t.netOwnerDraws);
 
+  document.getElementById('madeValue').textContent = fmtK(t.totalRevenue);
+  document.getElementById('madeSub').textContent = 'Total sales for this period';
+
   const profitEl = document.getElementById('profitValue');
   profitEl.textContent = fmtK(t.profit);
-  profitEl.classList.toggle('negative', t.profit < 0);
-  document.getElementById('profitSub').textContent =
-    `Sales ${fmtK(t.totalRevenue)} − stock ${fmtK(t.stockSpent)} − owner draws ${fmtK(t.netOwnerDraws)}`;
+  profitEl.parentElement.querySelectorAll('.svalue')[0].style.color = t.profit < 0 ? '#F4C7BB' : '';
 
   const all = [
     ...state.sales.map(s=>({...s, kind:'sale'})),
@@ -1237,7 +1413,7 @@ function closeCustomerModal(){ document.getElementById('customerModal').classLis
 
 // ---------- RENDER: HISTORY ----------
 function renderHistory(){
-  renderFilterChips('historyFilters', historyFilter, (val)=>{ historyFilter = val; renderHistory(); });
+  renderFilterChips('historyFilters', historyFilter, (val)=>{ historyFilter = val; renderHistory(); }, false);
 
   const { sales, stock, payments } = getFilteredData(historyFilter);
   const all = [
@@ -1267,8 +1443,7 @@ function deleteEntry(kind, id){
 
 // ---------- RENDER: BANK / TRANSFERS ----------
 function renderBank(){
-  const t = computeTotals('all');
-  document.getElementById('bankBalanceValue').textContent = fmtK(t.transferBalance);
+  document.getElementById('bankBalanceValue').textContent = fmtK(computeTransferBalance());
 
   const list = (state.transfersOut||[]).slice().sort((a,b)=> (b.date+b.id).localeCompare(a.date+a.id));
   const listEl = document.getElementById('transferList');
@@ -1399,6 +1574,8 @@ document.getElementById('submitChange').addEventListener('click', async ()=>{
 
 // ---------- RENDER: STOCK TAKING ----------
 function renderStock(){
+  document.getElementById('stockTotalValue').textContent = fmtK(totalStockValue());
+
   const products = (state.products||[]).slice().sort((a,b)=> a.name.localeCompare(b.name));
   document.getElementById('productCount').textContent = products.length;
 
@@ -1412,9 +1589,8 @@ function renderStock(){
           <div class="pname">${escapeHtml(p.name)}</div>
           <div class="pqty ${p.qty <= 3 ? 'low':''}">${p.qty} left</div>
         </div>
-        <div class="pmeta">Sell K${(p.sellPrice||0).toFixed(2)}${p.buyPrice ? ' · Buy K'+p.buyPrice.toFixed(2) : ''}</div>
+        <div class="pmeta">Sell K${(p.sellPrice||0).toFixed(2)}${p.buyPrice ? ' · Buy K'+p.buyPrice.toFixed(2) : ''} · Value K${(p.qty*(p.sellPrice||0)).toFixed(2)}</div>
         <div class="pbtns">
-          <button onclick="openSellModal('${p.id}')">💵 Sell</button>
           <button onclick="openRestockModal('${p.id}')">📥 Restock</button>
           <button onclick="deleteProduct('${p.id}')">🗑️ Remove</button>
         </div>
@@ -1422,7 +1598,7 @@ function renderStock(){
     `).join('');
   }
 
-  const moves = (state.stockMovements||[]).slice().sort((a,b)=> (b.date+b.id).localeCompare(a.date+a.id)).slice(0,30);
+  const moves = (state.stockMovements||[]).slice().sort((a,b)=> (b.date+b.id).localeCompare(a.date+a.id)).slice(0,40);
   const moveEl = document.getElementById('stockMovementList');
   if(moves.length === 0){
     moveEl.innerHTML = `<div class="empty-state"><div class="ic">📜</div><div class="msg">No stock movements yet.</div></div>`;
@@ -1431,12 +1607,25 @@ function renderStock(){
       <div class="entry">
         <div class="left">
           <div class="item-name">${escapeHtml(m.productName)}</div>
-          <div class="meta">${m.date} · ${m.type === 'sale' ? 'Sold' : m.type === 'restock' ? 'Restocked' : 'Adjusted'}</div>
+          <div class="meta">${m.date} · ${m.type === 'sale' ? 'Sold' : m.type === 'restock' ? 'Restocked' : m.type === 'owner' ? 'Owner took' : 'Adjusted'}</div>
         </div>
-        <div class="amt ${m.qtyChange > 0 ? 'pos':'neg'}">${m.qtyChange > 0 ? '+' : ''}${m.qtyChange}</div>
+        <div class="entry-row">
+          <div class="amt ${m.qtyChange > 0 ? 'pos':'neg'}">${m.qtyChange > 0 ? '+' : ''}${m.qtyChange}</div>
+          <button class="del-btn" onclick="deleteStockMovement('${m.id}')">🗑️</button>
+        </div>
       </div>
     `).join('');
   }
+
+  refreshOwnerProductSelect();
+}
+
+function deleteStockMovement(id){
+  if(!confirm("Delete this stock history entry? This won't change your current stock quantity, it only removes the log.")) return;
+  state.stockMovements = state.stockMovements.filter(m=>m.id!==id);
+  saveData();
+  renderStock();
+  showToast('History entry deleted');
 }
 
 document.getElementById('submitProduct').addEventListener('click', async ()=>{
@@ -1459,6 +1648,7 @@ document.getElementById('submitProduct').addEventListener('click', async ()=>{
   document.getElementById('productSellPrice').value='';
 
   renderStock();
+  rebuildSaleChecklist();
 });
 
 function deleteProduct(id){
@@ -1466,81 +1656,9 @@ function deleteProduct(id){
   state.products = state.products.filter(p=>p.id!==id);
   saveData();
   renderStock();
+  rebuildSaleChecklist();
   showToast('Product removed');
 }
-
-function openSellModal(productId){
-  const p = state.products.find(x=>x.id===productId);
-  if(!p) return;
-  document.getElementById('sellModalName').textContent = 'Sell: ' + p.name;
-  document.getElementById('sellModalBody').innerHTML = `
-    <div class="hint" style="margin-bottom:10px;">${p.qty} currently in stock</div>
-    <label>Quantity sold</label>
-    <input type="number" inputmode="numeric" id="sellQty" value="1" min="1">
-    <label>Amount (K)</label>
-    <input type="number" inputmode="decimal" id="sellAmount" value="${(p.sellPrice||0).toFixed(2)}">
-    <label>How did they pay?</label>
-    <div class="method-row" id="sellMethodRow">
-      <button data-method="cash" class="active">Cash</button>
-      <button data-method="transfer">Transfer</button>
-      <button data-method="credit">Credit</button>
-      <button data-method="goods">Goods</button>
-    </div>
-    <div id="sellCreditField" style="display:none;">
-      <label>Customer name</label>
-      <input type="text" id="sellCustomer" placeholder="e.g. Peter Kaupa">
-    </div>
-    <div id="sellGoodsField" style="display:none;">
-      <label>What goods did they give instead?</label>
-      <input type="text" id="sellGoodsNote" placeholder="e.g. 1 bag of kaukau">
-    </div>
-    <button class="submit-btn" id="sellSubmitBtn">Save Sale &amp; Update Stock</button>
-  `;
-
-  let sellMethod = 'cash';
-  const qtyInput = document.getElementById('sellQty');
-  const amountInput = document.getElementById('sellAmount');
-  qtyInput.addEventListener('input', ()=>{
-    const q = parseFloat(qtyInput.value) || 0;
-    amountInput.value = (q * (p.sellPrice||0)).toFixed(2);
-  });
-
-  document.getElementById('sellMethodRow').querySelectorAll('button').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      document.getElementById('sellMethodRow').querySelectorAll('button').forEach(b=>b.classList.remove('active'));
-      btn.classList.add('active');
-      sellMethod = btn.dataset.method;
-      document.getElementById('sellCreditField').style.display = (sellMethod==='credit') ? 'block' : 'none';
-      document.getElementById('sellGoodsField').style.display = (sellMethod==='goods') ? 'block' : 'none';
-    });
-  });
-
-  document.getElementById('sellSubmitBtn').addEventListener('click', async ()=>{
-    const qty = parseInt(qtyInput.value);
-    const amount = parseFloat(amountInput.value);
-    const customer = document.getElementById('sellCustomer') ? document.getElementById('sellCustomer').value.trim() : '';
-    const goodsNote = document.getElementById('sellGoodsNote') ? document.getElementById('sellGoodsNote').value.trim() : '';
-
-    if(!qty || qty <= 0){ showToast('Enter a valid quantity'); return; }
-    if(qty > p.qty){ showToast('Not enough stock — only ' + p.qty + ' left'); return; }
-    if(!amount || amount <= 0){ showToast('Enter a valid amount'); return; }
-    if(sellMethod === 'credit' && !customer){ showToast('Enter the customer name'); return; }
-    if(sellMethod === 'goods' && !goodsNote){ showToast('Describe what goods you received'); return; }
-
-    p.qty -= qty;
-    state.stockMovements.push({ id: uid(), date: todayStr(), productId: p.id, productName: p.name, type:'sale', qtyChange: -qty });
-    state.sales.push({ id: uid(), date: todayStr(), item: p.name, amount, method: sellMethod, customer: customer||null, goodsNote: goodsNote||null, productId: p.id, qtySold: qty });
-
-    await saveData();
-    showToast('Sale recorded, stock updated ✓');
-    closeSellModal();
-    renderStock();
-    renderDashboard();
-  });
-
-  document.getElementById('sellModal').classList.add('active');
-}
-function closeSellModal(){ document.getElementById('sellModal').classList.remove('active'); }
 
 function openRestockModal(productId){
   const p = state.products.find(x=>x.id===productId);
@@ -1561,10 +1679,95 @@ function openRestockModal(productId){
     showToast('Stock updated ✓');
     closeRestockModal();
     renderStock();
+    rebuildSaleChecklist();
   });
   document.getElementById('restockModal').classList.add('active');
 }
 function closeRestockModal(){ document.getElementById('restockModal').classList.remove('active'); }
+
+// ---------- ADD > SALE: stock-linked multi-item checkout ----------
+document.getElementById('saleSourceToggle').querySelectorAll('button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.getElementById('saleSourceToggle').querySelectorAll('button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    saleSource = btn.dataset.source;
+    document.getElementById('saleStockFields').style.display = saleSource === 'stock' ? 'block' : 'none';
+    document.getElementById('saleCustomFields').style.display = saleSource === 'custom' ? 'block' : 'none';
+    if(saleSource === 'stock') rebuildSaleChecklist();
+  });
+});
+
+function rebuildSaleChecklist(){
+  const box = document.getElementById('saleChecklistBox');
+  const products = (state.products||[]).filter(p=>p.qty > 0).sort((a,b)=>a.name.localeCompare(b.name));
+  if(products.length === 0){
+    box.innerHTML = `<div class="empty-state" style="padding:20px;"><div class="msg">No stock available. Add products in Stock Taking, or use Custom Item.</div></div>`;
+    updateSaleChecklistTotal();
+    return;
+  }
+  box.innerHTML = products.map(p => `
+    <div class="stock-check-item">
+      <input type="checkbox" class="sci-check" data-pid="${p.id}">
+      <div>
+        <div class="sci-name">${escapeHtml(p.name)}</div>
+        <div class="sci-avail">${p.qty} available · K${(p.sellPrice||0).toFixed(2)} each</div>
+      </div>
+      <input type="number" class="sci-qty" data-pid="${p.id}" value="1" min="1" max="${p.qty}" style="display:none;">
+    </div>
+  `).join('');
+
+  box.querySelectorAll('.sci-check').forEach(chk=>{
+    chk.addEventListener('change', ()=>{
+      const qtyInput = box.querySelector(`.sci-qty[data-pid="${chk.dataset.pid}"]`);
+      qtyInput.style.display = chk.checked ? 'block' : 'none';
+      updateSaleChecklistTotal();
+    });
+  });
+  box.querySelectorAll('.sci-qty').forEach(inp=>{
+    inp.addEventListener('input', updateSaleChecklistTotal);
+  });
+  updateSaleChecklistTotal();
+}
+
+function getSelectedSaleItems(){
+  const box = document.getElementById('saleChecklistBox');
+  const items = [];
+  box.querySelectorAll('.sci-check:checked').forEach(chk=>{
+    const pid = chk.dataset.pid;
+    const p = state.products.find(x=>x.id===pid);
+    const qtyInput = box.querySelector(`.sci-qty[data-pid="${pid}"]`);
+    const qty = parseInt(qtyInput.value) || 0;
+    if(p && qty > 0){
+      items.push({ productId: p.id, name: p.name, qty, unitPrice: p.sellPrice||0, lineTotal: qty*(p.sellPrice||0) });
+    }
+  });
+  return items;
+}
+
+function updateSaleChecklistTotal(){
+  const items = getSelectedSaleItems();
+  const total = items.reduce((a,i)=>a+i.lineTotal,0);
+  document.getElementById('saleChecklistTotal').textContent = fmtK(total);
+}
+
+// ---------- OWNER: goods dropdown ----------
+function refreshOwnerProductSelect(){
+  const sel = document.getElementById('ownerProductSelect');
+  if(!sel) return;
+  const products = (state.products||[]).filter(p=>p.qty>0).sort((a,b)=>a.name.localeCompare(b.name));
+  sel.innerHTML = products.map(p=>`<option value="${p.id}">${escapeHtml(p.name)} (${p.qty} left)</option>`).join('');
+  updateOwnerGoodsValue();
+}
+
+function updateOwnerGoodsValue(){
+  const sel = document.getElementById('ownerProductSelect');
+  const qtyInput = document.getElementById('ownerProductQty');
+  if(!sel || !sel.value) { document.getElementById('ownerGoodsValueHint').textContent = 'Value: K0.00'; return; }
+  const p = state.products.find(x=>x.id===sel.value);
+  const qty = parseInt(qtyInput.value) || 0;
+  const val = p ? qty * (p.sellPrice||0) : 0;
+  document.getElementById('ownerGoodsValueHint').textContent = 'Value: ' + fmtK(val);
+}
 
 // ---------- RENDER: OWNER CREDIT ----------
 function renderOwner(){
@@ -1588,7 +1791,7 @@ function renderOwner(){
   listEl.innerHTML = list.map(o => `
     <div class="entry">
       <div class="left">
-        <div class="item-name">${o.type === 'take' ? 'Took money out' : 'Paid money back'}</div>
+        <div class="item-name">${o.type === 'take' ? 'Took ' + (o.method==='goods' ? 'goods' : 'money') + ' out' : 'Paid money back'}${o.method==='goods' && o.productName ? ': '+escapeHtml(o.productName)+' x'+o.qty : ''}</div>
         <div class="meta">${o.date} · <span class="tag ${o.owner==='Owner 1'?'owner1':'owner2'}">${o.owner}</span> · ${methodTag(o.method)}${o.note ? ' · '+escapeHtml(o.note) : ''}</div>
       </div>
       <div class="entry-row">
@@ -1631,14 +1834,43 @@ document.getElementById('ownerMethodRow').querySelectorAll('button').forEach(btn
     document.getElementById('ownerMethodRow').querySelectorAll('button').forEach(b=>b.classList.remove('active'));
     btn.classList.add('active');
     ownerMethod = btn.dataset.method;
+    document.getElementById('ownerCashFields').style.display = ownerMethod === 'goods' ? 'none' : 'block';
+    document.getElementById('ownerGoodsFields').style.display = ownerMethod === 'goods' ? 'block' : 'none';
+    if(ownerMethod === 'goods') refreshOwnerProductSelect();
   });
 });
+document.getElementById('ownerProductSelect').addEventListener('change', updateOwnerGoodsValue);
+document.getElementById('ownerProductQty').addEventListener('input', updateOwnerGoodsValue);
 
 document.getElementById('submitOwner').addEventListener('click', async ()=>{
   const date = document.getElementById('ownerDate').value || todayStr();
-  const amount = parseFloat(document.getElementById('ownerAmount').value);
   const note = document.getElementById('ownerNote').value.trim();
 
+  if(ownerMethod === 'goods'){
+    if(ownerType !== 'take'){ showToast('Goods can only be recorded as "Took money out"'); return; }
+    const pid = document.getElementById('ownerProductSelect').value;
+    const p = state.products.find(x=>x.id===pid);
+    const qty = parseInt(document.getElementById('ownerProductQty').value);
+    if(!p){ showToast('Select a product'); return; }
+    if(!qty || qty <= 0){ showToast('Enter a valid quantity'); return; }
+    if(qty > p.qty){ showToast('Not enough stock — only ' + p.qty + ' left'); return; }
+    const value = qty * (p.sellPrice||0);
+
+    p.qty -= qty;
+    state.stockMovements.push({ id: uid(), date, productId: p.id, productName: p.name, type:'owner', qtyChange: -qty });
+    state.ownerTransactions.push({ id: uid(), date, owner: ownerWho, type:'take', amount: value, method:'goods', productName: p.name, qty, note: note||null });
+
+    await saveData();
+    showToast('Owner goods recorded ✓');
+    document.getElementById('ownerProductQty').value='';
+    document.getElementById('ownerNote').value='';
+    renderStock();
+    renderOwner();
+    renderDashboard();
+    return;
+  }
+
+  const amount = parseFloat(document.getElementById('ownerAmount').value);
   if(!amount || amount <= 0){ showToast('Enter a valid amount'); return; }
 
   state.ownerTransactions.push({ id: uid(), date, owner: ownerWho, type: ownerType, amount, method: ownerMethod, note: note||null });
@@ -1652,6 +1884,261 @@ document.getElementById('submitOwner').addEventListener('click', async ()=>{
   renderDashboard();
 });
 
+// ---------- RENDER: CASH ON HAND ----------
+function renderCashView(){
+  document.getElementById('cashBalanceValue').textContent = fmtK(computeCashOnHand());
+
+  const items = [
+    ...(state.cashBacks||[]).map(c=>({...c, kind:'cashback'})),
+    ...(state.cashAdjustments||[]).map(c=>({...c, kind:'adjustment'}))
+  ].sort((a,b)=> (b.date+b.id).localeCompare(a.date+a.id));
+
+  const listEl = document.getElementById('cashHistoryList');
+  if(items.length === 0){
+    listEl.innerHTML = `<div class="empty-state"><div class="ic">💰</div><div class="msg">No cash-outs or corrections yet.</div></div>`;
+    return;
+  }
+  listEl.innerHTML = items.map(c => `
+    <div class="entry">
+      <div class="left">
+        <div class="item-name">${c.kind === 'cashback' ? 'Cash Back' : 'Balance Correction'}</div>
+        <div class="meta">${c.date}${c.note ? ' · '+escapeHtml(c.note) : ''}</div>
+      </div>
+      <div class="entry-row">
+        <div class="amt ${c.amount < 0 ? 'pos' : 'neg'}">${c.amount < 0 ? '+' : '−'}${fmtK(Math.abs(c.amount))}</div>
+        <button class="del-btn" onclick="deleteCashItem('${c.kind}','${c.id}')">🗑️</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function deleteCashItem(kind, id){
+  if(!confirm('Delete this record?')) return;
+  if(kind === 'cashback') state.cashBacks = state.cashBacks.filter(c=>c.id!==id);
+  else state.cashAdjustments = state.cashAdjustments.filter(c=>c.id!==id);
+  saveData();
+  renderCashView();
+  renderDashboard();
+  showToast('Deleted');
+}
+
+document.getElementById('submitCashBack').addEventListener('click', async ()=>{
+  const amount = parseFloat(document.getElementById('cashBackAmount').value);
+  const note = document.getElementById('cashBackNote').value.trim();
+  if(!amount || amount <= 0){ showToast('Enter a valid amount'); return; }
+  state.cashBacks.push({ id: uid(), date: todayStr(), amount, note: note||null });
+  await saveData();
+  showToast('Cash back saved ✓');
+  document.getElementById('cashBackAmount').value='';
+  document.getElementById('cashBackNote').value='';
+  renderCashView();
+  renderDashboard();
+});
+
+document.getElementById('submitCashCorrect').addEventListener('click', async ()=>{
+  const desired = parseFloat(document.getElementById('cashCorrectAmount').value);
+  if(isNaN(desired)){ showToast('Enter the actual cash counted'); return; }
+  const current = computeCashOnHand();
+  const delta = desired - current;
+  state.cashAdjustments.push({ id: uid(), date: todayStr(), amount: delta, note: 'Manual correction to ' + fmtK(desired) });
+  await saveData();
+  showToast('Balance corrected ✓');
+  document.getElementById('cashCorrectAmount').value='';
+  renderCashView();
+  renderDashboard();
+});
+
+document.getElementById('collectTodayBtn').addEventListener('click', async ()=>{
+  const current = computeCashOnHand();
+  if(current <= CASH_FLOAT){ showToast('Nothing above the K10 float to collect'); return; }
+  if(!confirm(`Collect ${fmtK(current - CASH_FLOAT)} and leave K${CASH_FLOAT} float for tomorrow?`)) return;
+  state.cashBacks.push({ id: uid(), date: todayStr(), amount: current - CASH_FLOAT, note: "Collected today's sales, K10 float left" });
+  await saveData();
+  showToast('Collected ✓');
+  renderCashView();
+  renderDashboard();
+});
+
+// ---------- RENDER: PROFIT SAVINGS ----------
+let savingsPct = 20;
+document.getElementById('savingsPercentRow').querySelectorAll('button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.getElementById('savingsPercentRow').querySelectorAll('button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    savingsPct = parseFloat(btn.dataset.pct);
+    document.getElementById('savingsCustomPct').value = '';
+    renderSavings();
+  });
+});
+document.getElementById('savingsCustomPct').addEventListener('input', (e)=>{
+  const v = parseFloat(e.target.value);
+  if(!isNaN(v) && v >= 0){
+    savingsPct = v;
+    document.getElementById('savingsPercentRow').querySelectorAll('button').forEach(b=>b.classList.remove('active'));
+    renderSavings();
+  }
+});
+
+function renderSavings(){
+  const t = computeTotals('today');
+  const saveAmount = t.profit > 0 ? t.profit * (savingsPct/100) : 0;
+  const cashOnHand = computeCashOnHand();
+  const cashAfter = cashOnHand - saveAmount;
+  const stockVal = totalStockValue();
+
+  let safe, reason;
+  if(t.profit <= 0){
+    safe = false;
+    reason = "You haven't made a profit today yet, so there's nothing safe to save right now.";
+  } else if(saveAmount > cashOnHand){
+    safe = false;
+    reason = `You only have ${fmtK(cashOnHand)} cash on hand, which is less than the ${fmtK(saveAmount)} you'd be saving.`;
+  } else if(cashAfter < CASH_FLOAT){
+    safe = false;
+    reason = `Saving ${fmtK(saveAmount)} would drop your cash on hand to ${fmtK(cashAfter)}, below your K${CASH_FLOAT} operating float.`;
+  } else {
+    safe = true;
+    reason = `After saving ${fmtK(saveAmount)}, you'd still have ${fmtK(cashAfter)} cash on hand — enough to cover your K${CASH_FLOAT} float and keep trading.`;
+  }
+
+  document.getElementById('savingsResult').innerHTML = `
+    <div class="profit-card" style="margin-bottom:14px;">
+      <div class="label">Today's profit</div>
+      <div class="value">${fmtK(t.profit)}</div>
+      <div class="sub">${savingsPct}% of profit = ${fmtK(saveAmount)}</div>
+    </div>
+    <div class="card-grid">
+      <div class="stat-card cash"><div class="label">Cash on hand</div><div class="value">${fmtK(cashOnHand)}</div></div>
+      <div class="stat-card stock"><div class="label">Remaining stock value</div><div class="value">${fmtK(stockVal)}</div></div>
+    </div>
+    <div class="entry" style="flex-direction:column; align-items:flex-start; padding:16px; ${safe ? 'border-color:var(--profit);' : 'border-color:var(--debt);'}">
+      <div style="font-family:'Space Grotesk'; font-weight:700; font-size:16px; color:${safe ? 'var(--profit)' : 'var(--debt)'}; margin-bottom:6px;">
+        ${safe ? '✅ Safe to Save' : '⚠️ Not Safe to Save'}
+      </div>
+      <div style="font-size:13px; color:var(--ink-soft); line-height:1.5;">${reason}</div>
+    </div>
+    <div class="hint" style="margin-top:10px;">This is a simple guideline based on your K${CASH_FLOAT} float, not financial advice.</div>
+  `;
+}
+
+// ---------- CALENDAR ----------
+let calMode = 'week';
+let calMonthOffset = 0;
+
+function openCalendarModal(){
+  calMode = 'week';
+  calMonthOffset = 0;
+  document.getElementById('calTabs').querySelectorAll('button').forEach(b=>b.classList.toggle('active', b.dataset.calmode==='week'));
+  renderCalendarBody();
+  document.getElementById('calendarModal').classList.add('active');
+}
+function closeCalendarModal(){ document.getElementById('calendarModal').classList.remove('active'); }
+
+document.getElementById('calTabs').querySelectorAll('button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.getElementById('calTabs').querySelectorAll('button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    calMode = btn.dataset.calmode;
+    calMonthOffset = 0;
+    renderCalendarBody();
+  });
+});
+
+function dateHasData(dateStr){
+  return state.sales.some(s=>s.date===dateStr) || state.stock.some(s=>s.date===dateStr) ||
+    state.creditPayments.some(p=>p.date===dateStr) || (state.transfersOut||[]).some(t=>t.date===dateStr) ||
+    (state.changeRecords||[]).some(c=>c.date===dateStr) || (state.ownerTransactions||[]).some(o=>o.date===dateStr) ||
+    (state.cashBacks||[]).some(c=>c.date===dateStr);
+}
+
+function renderCalendarBody(){
+  const body = document.getElementById('calBody');
+  const dayHeads = ['S','M','T','W','T','F','S'];
+  if(calMode === 'week'){
+    const today = new Date();
+    let html = `<div class="cal-grid">` + dayHeads.map(d=>`<div class="cal-day-head">${d}</div>`).join('');
+    for(let i=6;i>=0;i--){
+      const d = new Date(today); d.setDate(today.getDate()-i);
+      const dateStr = d.toISOString().slice(0,10);
+      const isToday = dateStr === todayStr();
+      html += `<div class="cal-cell ${isToday?'today':''} ${dateHasData(dateStr)?'has-data':''}" onclick="openDayDetail('${dateStr}')">${d.getDate()}</div>`;
+    }
+    html += `</div>`;
+    body.innerHTML = html;
+  } else {
+    const now = new Date();
+    const viewDate = new Date(now.getFullYear(), now.getMonth()+calMonthOffset, 1);
+    const year = viewDate.getFullYear(), month = viewDate.getMonth();
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month+1, 0).getDate();
+    const monthLabel = viewDate.toLocaleString('default', { month:'long', year:'numeric' });
+
+    let html = `<div class="cal-nav">
+      <button onclick="calMonthOffset--; renderCalendarBody();">‹</button>
+      <span class="cal-label">${monthLabel}</span>
+      <button onclick="calMonthOffset++; renderCalendarBody();">›</button>
+    </div>`;
+    html += `<div class="cal-grid">` + dayHeads.map(d=>`<div class="cal-day-head">${d}</div>`).join('');
+    for(let i=0;i<firstDay;i++){ html += `<div class="cal-cell empty"></div>`; }
+    for(let day=1; day<=daysInMonth; day++){
+      const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+      const isToday = dateStr === todayStr();
+      html += `<div class="cal-cell ${isToday?'today':''} ${dateHasData(dateStr)?'has-data':''}" onclick="openDayDetail('${dateStr}')">${day}</div>`;
+    }
+    html += `</div>`;
+    body.innerHTML = html;
+  }
+}
+
+function openDayDetail(dateStr){
+  document.getElementById('dayDetailTitle').textContent = dateStr;
+
+  const daySales = state.sales.filter(s=>s.date===dateStr);
+  const dayStock = state.stock.filter(s=>s.date===dateStr);
+  const dayPayments = state.creditPayments.filter(p=>p.date===dateStr);
+  const dayTransfers = (state.transfersOut||[]).filter(t=>t.date===dateStr);
+  const dayChange = (state.changeRecords||[]).filter(c=>c.date===dateStr);
+  const dayOwner = (state.ownerTransactions||[]).filter(o=>o.date===dateStr);
+
+  const revenue = daySales.reduce((a,s)=>a+s.amount,0);
+  const stockCost = dayStock.reduce((a,s)=>a+s.amount,0);
+  const ownerNet = dayOwner.filter(o=>o.type==='take').reduce((a,o)=>a+o.amount,0) - dayOwner.filter(o=>o.type==='repay').reduce((a,o)=>a+o.amount,0);
+  const dayProfit = revenue - stockCost - ownerNet;
+  const cashSnapshot = computeCashOnHand(dateStr);
+
+  function section(title, list, renderItem){
+    if(list.length === 0) return `<div class="day-detail-section"><h4>${title}</h4><div class="hint">Nothing recorded</div></div>`;
+    return `<div class="day-detail-section"><h4>${title}</h4>${list.map(renderItem).join('')}</div>`;
+  }
+
+  let html = `
+    <div class="card-grid" style="margin-bottom:14px;">
+      <div class="stat-card cash"><div class="label">Sales</div><div class="value">${fmtK(revenue)}</div></div>
+      <div class="stat-card owner"><div class="label">Profit</div><div class="value">${fmtK(dayProfit)}</div></div>
+      <div class="stat-card transfer"><div class="label">Cash on hand (end of day)</div><div class="value">${fmtK(cashSnapshot)}</div></div>
+      <div class="stat-card stock"><div class="label">Stock bought</div><div class="value">${fmtK(stockCost)}</div></div>
+    </div>
+  `;
+  html += section('Sales', daySales, s=>renderEntryRow({...s,kind:'sale'}));
+  html += section('Expenses (stock bought)', dayStock, s=>renderEntryRow({...s,kind:'stock'}));
+  html += section('Credit activity', [...daySales.filter(s=>s.method==='credit'), ...dayPayments.map(p=>({...p,kind:'payment'}))],
+    e=> e.kind==='payment' ? renderEntryRow(e) : renderEntryRow({...e,kind:'sale'}));
+  html += section('Bank transfers sent', dayTransfers, tr=>`
+    <div class="entry"><div class="left"><div class="item-name">To ${escapeHtml(tr.recipient)}</div><div class="meta">${tr.note?escapeHtml(tr.note):''}</div></div><div class="amt neg">−${fmtK(tr.amount)}</div></div>
+  `);
+  html += section('Change records', dayChange, c=>`
+    <div class="entry"><div class="left"><div class="item-name">${escapeHtml(c.customer)}</div><div class="meta"><span class="tag ${c.status}">${c.status}</span></div></div><div class="amt">${fmtK(c.amount)}</div></div>
+  `);
+  html += section('Owner transactions', dayOwner, o=>`
+    <div class="entry"><div class="left"><div class="item-name">${o.owner} — ${o.type==='take'?'took out':'paid back'}</div></div><div class="amt ${o.type==='take'?'neg':'pos'}">${fmtK(o.amount)}</div></div>
+  `);
+
+  document.getElementById('dayDetailBody').innerHTML = html;
+  document.getElementById('dayDetailModal').classList.add('active');
+}
+function closeDayDetailModal(){ document.getElementById('dayDetailModal').classList.remove('active'); }
+
+// ---------- RENDER ALL ----------
 function renderAll(){
   renderDashboard();
   renderCreditBook();
@@ -1660,7 +2147,10 @@ function renderAll(){
   renderChange();
   renderStock();
   renderOwner();
+  renderCashView();
+  renderSavings();
   refreshCustomerDatalist();
+  rebuildSaleChecklist();
 }
 
 function refreshCustomerDatalist(){
@@ -1675,6 +2165,9 @@ function switchToView(name){
   const viewEl = document.getElementById('view-' + name);
   if(viewEl) viewEl.classList.add('active');
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===name));
+  if(name === 'cash') renderCashView();
+  if(name === 'savings') renderSavings();
+  if(name === 'stock-taking') renderStock();
   window.scrollTo(0,0);
 }
 
@@ -1687,6 +2180,7 @@ document.getElementById('entryTypeToggle').querySelectorAll('button').forEach(bt
     ['sale','stock','payment'].forEach(t=>{
       document.getElementById('form-'+t).style.display = (t===currentEntryType) ? 'block' : 'none';
     });
+    if(currentEntryType === 'sale' && saleSource === 'stock') rebuildSaleChecklist();
   });
 });
 
@@ -1715,18 +2209,46 @@ wireMethodRow('stockMethodRow', (m)=>{ stockMethod = m; });
 let paymentMethod = 'cash';
 wireMethodRow('paymentMethodRow', (m)=>{ paymentMethod = m; });
 
-// ---------- SUBMIT HANDLERS (Add tab, unchanged) ----------
+// ---------- SUBMIT: SALE ----------
 document.getElementById('submitSale').addEventListener('click', async ()=>{
   const date = document.getElementById('saleDate').value || todayStr();
-  const item = document.getElementById('saleItem').value.trim();
-  const amount = parseFloat(document.getElementById('saleAmount').value);
   const customer = document.getElementById('saleCustomer').value.trim();
   const goodsNote = document.getElementById('saleGoodsNote').value.trim();
 
-  if(!item){ showToast('Enter what was sold'); return; }
-  if(!amount || amount <= 0){ showToast('Enter a valid amount'); return; }
   if(saleMethod === 'credit' && !customer){ showToast('Enter the customer name'); return; }
   if(saleMethod === 'goods' && !goodsNote){ showToast('Describe what goods you received'); return; }
+
+  if(saleSource === 'stock'){
+    const items = getSelectedSaleItems();
+    if(items.length === 0){ showToast('Select at least one item'); return; }
+    for(const it of items){
+      const p = state.products.find(x=>x.id===it.productId);
+      if(!p || it.qty > p.qty){ showToast(`Not enough stock for ${it.name}`); return; }
+    }
+    const total = items.reduce((a,i)=>a+i.lineTotal,0);
+    const itemSummary = items.map(i=>`${i.name} x${i.qty}`).join(', ');
+
+    items.forEach(it=>{
+      const p = state.products.find(x=>x.id===it.productId);
+      p.qty -= it.qty;
+      state.stockMovements.push({ id: uid(), date, productId: p.id, productName: p.name, type:'sale', qtyChange: -it.qty });
+    });
+
+    state.sales.push({ id: uid(), date, item: itemSummary, amount: total, method: saleMethod, customer: customer||null, goodsNote: goodsNote||null, lineItems: items });
+    await saveData();
+    showToast('Sale saved, stock updated ✓');
+
+    document.getElementById('saleCustomer').value='';
+    document.getElementById('saleGoodsNote').value='';
+    rebuildSaleChecklist();
+    renderAll();
+    return;
+  }
+
+  const item = document.getElementById('saleItem').value.trim();
+  const amount = parseFloat(document.getElementById('saleAmount').value);
+  if(!item){ showToast('Enter what was sold'); return; }
+  if(!amount || amount <= 0){ showToast('Enter a valid amount'); return; }
 
   state.sales.push({ id: uid(), date, item, amount, method: saleMethod, customer: customer||null, goodsNote: goodsNote||null });
   await saveData();
