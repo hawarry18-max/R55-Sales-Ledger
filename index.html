@@ -454,8 +454,16 @@
         <div class="value" id="madeValue">K0.00</div>
         <div class="sub" id="madeSub"></div>
         <div class="subrow">
-          <span class="slabel">Profit</span>
-          <span class="svalue" id="profitValue">K0.00</span>
+          <span class="slabel">Gross Profit</span>
+          <span class="svalue" id="grossProfitValue">K0.00</span>
+        </div>
+        <div class="subrow">
+          <span class="slabel">Total Sales</span>
+          <span class="svalue" id="totalSalesValue">K0.00</span>
+        </div>
+        <div class="subrow">
+          <span class="slabel">Cost of Goods Sold</span>
+          <span class="svalue" id="cogsValue">K0.00</span>
         </div>
       </div>
 
@@ -525,6 +533,14 @@
             <span id="saleChecklistTotal">K0.00</span>
           </div>
         </div>
+
+        <div style="border-top:1px dashed var(--line); margin:16px 0;"></div>
+        <h2 class="section-title" style="margin-top:0;">💵 Cash Out (Optional)</h2>
+        <div class="hint" style="margin-bottom:6px;">If the customer paid more than the sale and you gave part of it out immediately (e.g. change, a partner's goods).</div>
+        <label>Amount (K)</label>
+        <input type="number" inputmode="decimal" id="cashOutAmount" placeholder="0.00">
+        <label>Reason (optional)</label>
+        <input type="text" id="cashOutReason" placeholder="e.g. Business Partner Goods">
 
         <label>How did they pay?</label>
         <div class="method-row" id="saleMethodRow">
@@ -648,11 +664,12 @@
       <div class="form-block">
         <label>Product name</label>
         <input type="text" id="productName" placeholder="e.g. Coca-Cola 300ml">
-        <label>Quantity in stock</label>
+        <label>Quantity purchased</label>
         <input type="number" inputmode="numeric" id="productQty" placeholder="0">
-        <label>Buying price (optional, K)</label>
+        <label>Total buying price for this quantity (optional, K)</label>
         <input type="number" inputmode="decimal" id="productBuyPrice" placeholder="0.00">
-        <label>Selling price (K)</label>
+        <div class="hint">e.g. K69.90 for 24 units — the app works out the cost per item for you</div>
+        <label>Selling price per item (K)</label>
         <input type="number" inputmode="decimal" id="productSellPrice" placeholder="0.00">
         <button class="submit-btn" id="submitProduct">Add Product</button>
       </div>
@@ -740,17 +757,8 @@
         <label>Correct the balance (if it doesn't match what's in the till)</label>
         <input type="number" inputmode="decimal" id="cashCorrectAmount" placeholder="Enter actual cash counted">
         <button class="submit-btn secondary" id="submitCashCorrect">Save Correction</button>
-      </div>
-
-      <div class="form-block">
-        <h2 class="section-title" style="margin-top:0;">💸 Cash Back</h2>
-        <div class="hint" style="margin-bottom:8px;">Record cash you're taking out of today's sales (till).</div>
-        <label>Amount (K)</label>
-        <input type="number" inputmode="decimal" id="cashBackAmount" placeholder="0.00">
-        <label>Note (optional)</label>
-        <input type="text" id="cashBackNote" placeholder="e.g. banking, supplier payment">
-        <button class="submit-btn" id="submitCashBack">Save Cash Back</button>
         <button class="submit-btn small secondary" id="collectTodayBtn">Collect Today's Sales (leave K10 float)</button>
+        <div class="hint" style="margin-top:8px;">To take cash out during a sale (e.g. giving change or a partner's share), use the Cash Out field on the Add Sale screen.</div>
       </div>
 
       <h2 class="section-title">Cash history</h2>
@@ -862,6 +870,7 @@
   <button class="drawer-btn" onclick="switchToView('cash'); closeDrawer();">💰 Cash on Hand</button>
   <button class="drawer-btn" onclick="switchToView('savings'); closeDrawer();">📈 Profit Savings</button>
   <button class="drawer-btn" onclick="openCalendarModal(); closeDrawer();">📅 Reports Calendar</button>
+  <button class="drawer-btn" onclick="downloadBackup(); closeDrawer();">⬇️ Backup Data</button>
 
   <hr class="drawer-hr">
 
@@ -1029,6 +1038,7 @@ const rtdb = firebase.database();
 
 let shopCode = localStorage.getItem('shopCode') || null;
 let shopRef = null;
+let dataLoaded = false; // safety gate: true only once real data has arrived from Firebase
 
 function setSyncStatus(connected){
   const dot = document.getElementById('syncDot');
@@ -1051,6 +1061,9 @@ function updateShopCodeChip(){
 }
 
 function subscribeToShop(){
+  dataLoaded = false;
+  document.getElementById('loading').style.display = 'block';
+  document.getElementById('mainContent').style.display = 'none';
   if(shopRef) shopRef.off();
   shopRef = rtdb.ref('shops/' + shopCode);
   shopRef.on('value', (snapshot)=>{
@@ -1069,19 +1082,41 @@ function subscribeToShop(){
     } else {
       state = { sales: [], stock: [], creditPayments: [], transfersOut: [], changeRecords: [], products: [], stockMovements: [], ownerTransactions: [], cashBacks: [], cashAdjustments: [] };
     }
+    dataLoaded = true;
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('mainContent').style.display = 'block';
     renderAll();
   }, (err)=>{
     showToast('⚠️ Sync error — check your internet');
+    document.getElementById('loading').textContent = "Couldn't load your data — check your internet and reopen the app.";
   });
 }
 
 async function saveData(){
   if(!shopCode || !shopRef) return;
+  if(!dataLoaded){
+    showToast("⏳ Still syncing — please wait a moment and try again");
+    return;
+  }
   try{
     await shopRef.set(state);
   }catch(e){
     showToast("Saved on this phone — will sync when back online");
   }
+}
+
+function downloadBackup(){
+  if(!dataLoaded){ showToast('Wait for sync to finish first'); return; }
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'usales-backup-' + (shopCode||'shop') + '-' + todayStr() + '.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('Backup downloaded ✓');
 }
 
 function openSetupScreen(){
@@ -1107,7 +1142,7 @@ document.getElementById('connectShopBtn').addEventListener('click', ()=>{
   updateShopCodeChip();
   subscribeToShop();
   closeSetupScreen();
-  showToast('Connected');
+  showToast('Connecting…');
 });
 
 document.getElementById('setupToggle').querySelectorAll('button').forEach(btn=>{
@@ -1128,6 +1163,7 @@ function logout(){
   if(shopRef) shopRef.off();
   localStorage.removeItem('shopCode');
   shopCode = null;
+  dataLoaded = true; // nothing remote to protect until they connect again
   state = { sales: [], stock: [], creditPayments: [], transfersOut: [], changeRecords: [], products: [], stockMovements: [], ownerTransactions: [], cashBacks: [], cashAdjustments: [] };
   updateShopCodeChip();
   closeDrawer();
@@ -1185,11 +1221,22 @@ function computeTransferBalance(upToDate){
   return transfer - stockTransfer - transfersOutTotal - ownerTakesTransfer + ownerRepayTransfer;
 }
 
+function computeCOGS(sales){
+  return sales.reduce((total, s)=>{
+    if(s.lineItems && s.lineItems.length){
+      return total + s.lineItems.reduce((a,li)=> a + (li.qty * (li.unitCost||0)), 0);
+    }
+    return total; // custom/manual sales with no stock link: cost unknown, treated as 0
+  }, 0);
+}
+
 function computeTotals(filter){
   const { sales, stock } = getFilteredData(filter);
 
   const totalRevenue = sales.reduce((a,s)=>a+s.amount,0);
   const totalStockCost = stock.reduce((a,s)=>a+s.amount,0);
+  const cogs = computeCOGS(sales);
+  const grossProfit = totalRevenue - cogs;
 
   const allCreditGiven = state.sales.filter(s=>s.method==='credit').reduce((a,s)=>a+s.amount,0);
   const allCreditPaid = state.creditPayments.reduce((a,p)=>a+p.amount,0);
@@ -1205,11 +1252,12 @@ function computeTotals(filter){
   const cashInHand = computeCashOnHand();
   const transferBalance = computeTransferBalance();
 
-  const profit = totalRevenue - totalStockCost - netOwnerDraws;
+  const profit = grossProfit - netOwnerDraws;
 
   return {
     cashInHand, transferBalance, creditOutstanding, changeOutstanding,
-    stockSpent: totalStockCost, netOwnerDraws, profit, totalRevenue
+    stockSpent: totalStockCost, netOwnerDraws, profit, totalRevenue,
+    cogs, grossProfit
   };
 }
 
@@ -1262,9 +1310,10 @@ function renderDashboard(){
   document.getElementById('madeValue').textContent = fmtK(t.totalRevenue);
   document.getElementById('madeSub').textContent = 'Total sales for this period';
 
-  const profitEl = document.getElementById('profitValue');
-  profitEl.textContent = fmtK(t.profit);
-  profitEl.parentElement.querySelectorAll('.svalue')[0].style.color = t.profit < 0 ? '#F4C7BB' : '';
+  document.getElementById('grossProfitValue').textContent = fmtK(t.grossProfit);
+  document.getElementById('grossProfitValue').style.color = t.grossProfit < 0 ? '#F4C7BB' : '';
+  document.getElementById('totalSalesValue').textContent = fmtK(t.totalRevenue);
+  document.getElementById('cogsValue').textContent = fmtK(t.cogs);
 
   const all = [
     ...state.sales.map(s=>({...s, kind:'sale'})),
@@ -1589,7 +1638,7 @@ function renderStock(){
           <div class="pname">${escapeHtml(p.name)}</div>
           <div class="pqty ${p.qty <= 3 ? 'low':''}">${p.qty} left</div>
         </div>
-        <div class="pmeta">Sell K${(p.sellPrice||0).toFixed(2)}${p.buyPrice ? ' · Buy K'+p.buyPrice.toFixed(2) : ''} · Value K${(p.qty*(p.sellPrice||0)).toFixed(2)}</div>
+        <div class="pmeta">Sell K${(p.sellPrice||0).toFixed(2)} · Cost K${(p.costPerItem||0).toFixed(2)}/item · Profit K${((p.sellPrice||0)-(p.costPerItem||0)).toFixed(2)}/item · Value K${(p.qty*(p.sellPrice||0)).toFixed(2)}</div>
         <div class="pbtns">
           <button onclick="openRestockModal('${p.id}')">📥 Restock</button>
           <button onclick="deleteProduct('${p.id}')">🗑️ Remove</button>
@@ -1631,14 +1680,22 @@ function deleteStockMovement(id){
 document.getElementById('submitProduct').addEventListener('click', async ()=>{
   const name = document.getElementById('productName').value.trim();
   const qty = parseInt(document.getElementById('productQty').value);
-  const buyPrice = parseFloat(document.getElementById('productBuyPrice').value);
+  const totalBuyPrice = parseFloat(document.getElementById('productBuyPrice').value);
   const sellPrice = parseFloat(document.getElementById('productSellPrice').value);
 
   if(!name){ showToast('Enter a product name'); return; }
   if(isNaN(qty) || qty < 0){ showToast('Enter a valid quantity'); return; }
   if(!sellPrice || sellPrice <= 0){ showToast('Enter a valid selling price'); return; }
 
-  state.products.push({ id: uid(), name, qty, buyPrice: isNaN(buyPrice) ? null : buyPrice, sellPrice });
+  const hasBuyPrice = !isNaN(totalBuyPrice) && totalBuyPrice > 0;
+  const costPerItem = (hasBuyPrice && qty > 0) ? (totalBuyPrice / qty) : 0;
+
+  state.products.push({
+    id: uid(), name, qty, sellPrice,
+    totalBuyPrice: hasBuyPrice ? totalBuyPrice : 0,
+    qtyPurchased: qty,
+    costPerItem
+  });
   await saveData();
   showToast('Product added ✓');
 
@@ -1665,14 +1722,27 @@ function openRestockModal(productId){
   if(!p) return;
   document.getElementById('restockModalName').textContent = 'Restock: ' + p.name;
   document.getElementById('restockModalBody').innerHTML = `
-    <div class="hint" style="margin-bottom:10px;">Currently ${p.qty} in stock</div>
+    <div class="hint" style="margin-bottom:10px;">Currently ${p.qty} in stock · cost/item so far: K${(p.costPerItem||0).toFixed(4)}</div>
     <label>Quantity to add</label>
     <input type="number" inputmode="numeric" id="restockQty" value="1" min="1">
+    <label>Total cost of this restock (optional, K)</label>
+    <input type="number" inputmode="decimal" id="restockCost" placeholder="0.00">
+    <div class="hint">Leave blank to keep the same cost per item as before</div>
     <button class="submit-btn" id="restockSubmitBtn">Add to Stock</button>
   `;
   document.getElementById('restockSubmitBtn').addEventListener('click', async ()=>{
     const qty = parseInt(document.getElementById('restockQty').value);
+    const restockCost = parseFloat(document.getElementById('restockCost').value);
     if(!qty || qty <= 0){ showToast('Enter a valid quantity'); return; }
+
+    if(!isNaN(restockCost) && restockCost > 0){
+      // weighted-average cost per item across old stock + new restock
+      const oldValue = (p.costPerItem||0) * p.qty;
+      const newQty = p.qty + qty;
+      p.costPerItem = newQty > 0 ? (oldValue + restockCost) / newQty : 0;
+      p.totalBuyPrice = (p.totalBuyPrice||0) + restockCost;
+      p.qtyPurchased = (p.qtyPurchased||0) + qty;
+    }
     p.qty += qty;
     state.stockMovements.push({ id: uid(), date: todayStr(), productId: p.id, productName: p.name, type:'restock', qtyChange: qty });
     await saveData();
@@ -1738,7 +1808,7 @@ function getSelectedSaleItems(){
     const qtyInput = box.querySelector(`.sci-qty[data-pid="${pid}"]`);
     const qty = parseInt(qtyInput.value) || 0;
     if(p && qty > 0){
-      items.push({ productId: p.id, name: p.name, qty, unitPrice: p.sellPrice||0, lineTotal: qty*(p.sellPrice||0) });
+      items.push({ productId: p.id, name: p.name, qty, unitPrice: p.sellPrice||0, unitCost: p.costPerItem||0, lineTotal: qty*(p.sellPrice||0) });
     }
   });
   return items;
@@ -1901,8 +1971,8 @@ function renderCashView(){
   listEl.innerHTML = items.map(c => `
     <div class="entry">
       <div class="left">
-        <div class="item-name">${c.kind === 'cashback' ? 'Cash Back' : 'Balance Correction'}</div>
-        <div class="meta">${c.date}${c.note ? ' · '+escapeHtml(c.note) : ''}</div>
+        <div class="item-name">${c.kind === 'cashback' ? (c.source==='sale' ? 'Cash Out (from sale)' : 'Cash Out') : 'Balance Correction'}</div>
+        <div class="meta">${c.date}${c.note ? ' · '+escapeHtml(c.note) : ''}${c.saleSummary ? ' · sale: '+escapeHtml(c.saleSummary) : ''}</div>
       </div>
       <div class="entry-row">
         <div class="amt ${c.amount < 0 ? 'pos' : 'neg'}">${c.amount < 0 ? '+' : '−'}${fmtK(Math.abs(c.amount))}</div>
@@ -1921,19 +1991,6 @@ function deleteCashItem(kind, id){
   renderDashboard();
   showToast('Deleted');
 }
-
-document.getElementById('submitCashBack').addEventListener('click', async ()=>{
-  const amount = parseFloat(document.getElementById('cashBackAmount').value);
-  const note = document.getElementById('cashBackNote').value.trim();
-  if(!amount || amount <= 0){ showToast('Enter a valid amount'); return; }
-  state.cashBacks.push({ id: uid(), date: todayStr(), amount, note: note||null });
-  await saveData();
-  showToast('Cash back saved ✓');
-  document.getElementById('cashBackAmount').value='';
-  document.getElementById('cashBackNote').value='';
-  renderCashView();
-  renderDashboard();
-});
 
 document.getElementById('submitCashCorrect').addEventListener('click', async ()=>{
   const desired = parseFloat(document.getElementById('cashCorrectAmount').value);
@@ -2102,8 +2159,10 @@ function openDayDetail(dateStr){
 
   const revenue = daySales.reduce((a,s)=>a+s.amount,0);
   const stockCost = dayStock.reduce((a,s)=>a+s.amount,0);
+  const dayCogs = computeCOGS(daySales);
+  const dayGrossProfit = revenue - dayCogs;
   const ownerNet = dayOwner.filter(o=>o.type==='take').reduce((a,o)=>a+o.amount,0) - dayOwner.filter(o=>o.type==='repay').reduce((a,o)=>a+o.amount,0);
-  const dayProfit = revenue - stockCost - ownerNet;
+  const dayProfit = dayGrossProfit - ownerNet;
   const cashSnapshot = computeCashOnHand(dateStr);
 
   function section(title, list, renderItem){
@@ -2114,9 +2173,11 @@ function openDayDetail(dateStr){
   let html = `
     <div class="card-grid" style="margin-bottom:14px;">
       <div class="stat-card cash"><div class="label">Sales</div><div class="value">${fmtK(revenue)}</div></div>
-      <div class="stat-card owner"><div class="label">Profit</div><div class="value">${fmtK(dayProfit)}</div></div>
+      <div class="stat-card owner"><div class="label">Gross Profit</div><div class="value">${fmtK(dayGrossProfit)}</div></div>
+      <div class="stat-card credit"><div class="label">Cost of Goods Sold</div><div class="value">${fmtK(dayCogs)}</div></div>
       <div class="stat-card transfer"><div class="label">Cash on hand (end of day)</div><div class="value">${fmtK(cashSnapshot)}</div></div>
       <div class="stat-card stock"><div class="label">Stock bought</div><div class="value">${fmtK(stockCost)}</div></div>
+      <div class="stat-card change"><div class="label">Profit after owner draws</div><div class="value">${fmtK(dayProfit)}</div></div>
     </div>
   `;
   html += section('Sales', daySales, s=>renderEntryRow({...s,kind:'sale'}));
@@ -2319,17 +2380,18 @@ if('serviceWorker' in navigator){
   document.getElementById('darkModeToggle').checked = savedDark;
   applyTheme(savedTheme, savedDark);
 
-  document.getElementById('loading').style.display = 'none';
-  document.getElementById('mainContent').style.display = 'block';
-
   updateShopCodeChip();
 
   if(shopCode){
+    // subscribeToShop() controls showing loading/mainContent itself, gated on real data arriving
     subscribeToShop();
   } else {
+    dataLoaded = true; // no remote shop connected yet, nothing to protect
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('mainContent').style.display = 'block';
     openSetupScreen();
+    renderAll();
   }
-  renderAll();
 })();
 </script>
 </body>
