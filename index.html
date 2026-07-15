@@ -449,7 +449,7 @@
     <div class="view active" id="view-dashboard">
       <div class="filter-row" id="dashFilters"></div>
 
-      <div class="profit-card">
+      <div class="profit-card clickable" onclick="openProfitBreakdown()" style="cursor:pointer;">
         <div class="label">What I Made</div>
         <div class="value" id="madeValue">K0.00</div>
         <div class="sub" id="madeSub"></div>
@@ -465,6 +465,7 @@
           <span class="slabel">Cost of Goods Sold</span>
           <span class="svalue" id="cogsValue">K0.00</span>
         </div>
+        <div class="sub" style="margin-top:8px; text-decoration:underline;">Tap to see the breakdown</div>
       </div>
 
       <div class="card-grid">
@@ -485,9 +486,10 @@
           <div class="label">Change owed to customers</div>
           <div class="value" id="statChange">K0.00</div>
         </div>
-        <div class="stat-card stock">
+        <div class="stat-card stock clickable" onclick="openStockSpentBreakdown()">
           <div class="label">Spent on stock</div>
           <div class="value" id="statStock">K0.00</div>
+          <div class="edit-hint">Tap to see the list</div>
         </div>
         <div class="stat-card owner clickable" onclick="switchToView('owner')">
           <div class="label">Owner draws (net)</div>
@@ -656,9 +658,10 @@
       <button class="back-link" onclick="switchToView('dashboard')">← Back to Home</button>
       <h2 class="section-title">📦 Stock Taking</h2>
 
-      <div class="profit-card" style="margin-bottom:16px;">
+      <div class="profit-card" style="cursor:pointer;" onclick="openStockValueBreakdown()">
         <div class="label">Total stock value (at selling price)</div>
         <div class="value" id="stockTotalValue">K0.00</div>
+        <div class="sub" style="text-decoration:underline;">Tap to see per-product breakdown</div>
       </div>
 
       <div class="form-block">
@@ -687,15 +690,17 @@
       <h2 class="section-title">👤 Shop Owner Personal Credit</h2>
 
       <div class="card-grid" style="grid-template-columns:1fr 1fr;">
-        <div class="owner-card">
+        <div class="owner-card" style="cursor:pointer;" onclick="filterOwnerHistory('Owner 1')">
           <div class="label">Owner 1</div>
           <div class="value" id="owner1Value">K0.00</div>
           <div class="sub" id="owner1Sub"></div>
+          <div class="sub" style="text-decoration:underline;">Tap to see history</div>
         </div>
-        <div class="owner-card">
+        <div class="owner-card" style="cursor:pointer;" onclick="filterOwnerHistory('Owner 2')">
           <div class="label">Owner 2</div>
           <div class="value" id="owner2Value">K0.00</div>
           <div class="sub" id="owner2Sub"></div>
+          <div class="sub" style="text-decoration:underline;">Tap to see history</div>
         </div>
       </div>
 
@@ -738,7 +743,7 @@
         <button class="submit-btn" id="submitOwner">Save Transaction</button>
       </div>
 
-      <h2 class="section-title">History</h2>
+      <h2 class="section-title" id="ownerHistoryHeader">History</h2>
       <div id="ownerList"></div>
     </div>
 
@@ -833,6 +838,39 @@
       <button class="close-btn" onclick="closeDayDetailModal()">×</button>
     </div>
     <div id="dayDetailBody"></div>
+  </div>
+</div>
+
+<!-- Profit breakdown modal -->
+<div class="modal-overlay" id="profitModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Profit Breakdown</h3>
+      <button class="close-btn" onclick="closeProfitBreakdown()">×</button>
+    </div>
+    <div id="profitModalBody"></div>
+  </div>
+</div>
+
+<!-- Stock spent breakdown modal -->
+<div class="modal-overlay" id="stockSpentModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Spent on Stock</h3>
+      <button class="close-btn" onclick="closeStockSpentBreakdown()">×</button>
+    </div>
+    <div id="stockSpentModalBody"></div>
+  </div>
+</div>
+
+<!-- Stock value breakdown modal -->
+<div class="modal-overlay" id="stockValueModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Stock Value Breakdown</h3>
+      <button class="close-btn" onclick="closeStockValueBreakdown()">×</button>
+    </div>
+    <div id="stockValueModalBody"></div>
   </div>
 </div>
 
@@ -1273,6 +1311,29 @@ function totalStockValue(){
   return (state.products||[]).reduce((a,p)=>a + (p.qty * (p.sellPrice||0)), 0);
 }
 
+function openStockValueBreakdown(){
+  const products = (state.products||[]).slice().sort((a,b)=> (b.qty*(b.sellPrice||0)) - (a.qty*(a.sellPrice||0)));
+  const rows = products.map(p=>{
+    const val = p.qty * (p.sellPrice||0);
+    return `<div class="entry">
+      <div class="left">
+        <div class="item-name">${escapeHtml(p.name)}</div>
+        <div class="meta">${p.qty} left × K${(p.sellPrice||0).toFixed(2)}</div>
+      </div>
+      <div class="amt">${fmtK(val)}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('stockValueModalBody').innerHTML = `
+    <div class="profit-card" style="margin-bottom:14px;">
+      <div class="label">Total stock value</div>
+      <div class="value">${fmtK(totalStockValue())}</div>
+    </div>
+    ${rows || `<div class="empty-state"><div class="msg">No products yet.</div></div>`}
+  `;
+  document.getElementById('stockValueModal').classList.add('active');
+}
+function closeStockValueBreakdown(){ document.getElementById('stockValueModal').classList.remove('active'); }
+
 function getCustomerBalances(){
   const map = {};
   state.sales.filter(s=>s.method==='credit').forEach(s=>{
@@ -1336,6 +1397,60 @@ function renderDashboard(){
     listEl.innerHTML = all.map(e => renderEntryRow(e)).join('');
   }
 }
+
+function openProfitBreakdown(forceFilter){
+  const filter = forceFilter || dashFilter;
+  const { sales } = getFilteredData(filter);
+  const t = computeTotals(filter);
+  const rows = sales.slice().sort((a,b)=> (b.date+b.id).localeCompare(a.date+a.id)).map(s=>{
+    const cost = s.lineItems && s.lineItems.length ? s.lineItems.reduce((a,li)=>a+(li.qty*(li.unitCost||0)),0) : 0;
+    const lineProfit = s.amount - cost;
+    return `<div class="entry">
+      <div class="left">
+        <div class="item-name">${escapeHtml(s.item)}</div>
+        <div class="meta">${s.date} · ${methodTag(s.method)}${!s.lineItems ? ' · cost unknown (custom item)' : ''}</div>
+      </div>
+      <div class="entry-row">
+        <div class="amt" style="text-align:right;">
+          <div>Sale ${fmtK(s.amount)}</div>
+          <div style="font-size:11px;color:var(--ink-soft);">Cost ${fmtK(cost)}</div>
+        </div>
+        <div class="amt ${lineProfit>=0?'pos':'neg'}">${fmtK(lineProfit)}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('profitModalBody').innerHTML = `
+    <div class="profit-card" style="margin-bottom:14px;">
+      <div class="label">Gross Profit (${filter})</div>
+      <div class="value">${fmtK(t.grossProfit)}</div>
+      <div class="sub">Total Sales ${fmtK(t.totalRevenue)} − Cost of Goods Sold ${fmtK(t.cogs)}</div>
+    </div>
+    <h2 class="section-title" style="margin-top:0;">Every sale in this period</h2>
+    ${rows || `<div class="empty-state"><div class="msg">No sales in this period.</div></div>`}
+    <div class="hint" style="margin-top:10px;">"Cost unknown" means the sale used Custom Item instead of Stock Taking, so the app can't work out its true cost.</div>
+  `;
+  document.getElementById('profitModal').classList.add('active');
+}
+function closeProfitBreakdown(){ document.getElementById('profitModal').classList.remove('active'); }
+
+function openStockSpentBreakdown(){
+  const { stock } = getFilteredData(dashFilter);
+  const t = computeTotals(dashFilter);
+  const list = stock.slice().sort((a,b)=> (b.date+b.id).localeCompare(a.date+a.id));
+  const rows = list.map(s => renderEntryRow({...s, kind:'stock'})).join('');
+
+  document.getElementById('stockSpentModalBody').innerHTML = `
+    <div class="profit-card" style="margin-bottom:14px;">
+      <div class="label">Spent on Stock (${dashFilter})</div>
+      <div class="value">${fmtK(t.stockSpent)}</div>
+    </div>
+    <h2 class="section-title" style="margin-top:0;">Every stock purchase in this period</h2>
+    ${rows || `<div class="empty-state"><div class="msg">No stock purchases in this period.</div></div>`}
+  `;
+  document.getElementById('stockSpentModal').classList.add('active');
+}
+function closeStockSpentBreakdown(){ document.getElementById('stockSpentModal').classList.remove('active'); }
 
 function methodTag(method){
   const labels = { cash:'Cash', transfer:'Transfer', credit:'Credit', goods:'Goods' };
@@ -1848,6 +1963,12 @@ function updateOwnerGoodsValue(){
 }
 
 // ---------- RENDER: OWNER CREDIT ----------
+let ownerHistoryFilter = 'all';
+function filterOwnerHistory(owner){
+  ownerHistoryFilter = (ownerHistoryFilter === owner) ? 'all' : owner;
+  renderOwner();
+}
+
 function renderOwner(){
   const txns = state.ownerTransactions||[];
   ['Owner 1','Owner 2'].forEach((owner, idx)=>{
@@ -1860,8 +1981,11 @@ function renderOwner(){
     document.getElementById('owner'+n+'Sub').textContent = bal > 0 ? 'Owes the business' : (bal < 0 ? 'Business owes owner' : 'Settled');
   });
 
-  const list = txns.slice().sort((a,b)=> (b.date+b.id).localeCompare(a.date+a.id));
+  const list = (ownerHistoryFilter === 'all' ? txns : txns.filter(o=>o.owner===ownerHistoryFilter))
+    .slice().sort((a,b)=> (b.date+b.id).localeCompare(a.date+a.id));
   const listEl = document.getElementById('ownerList');
+  const headerEl = document.getElementById('ownerHistoryHeader');
+  if(headerEl) headerEl.textContent = ownerHistoryFilter === 'all' ? 'History' : `History — ${ownerHistoryFilter} (tap card again to clear)`;
   if(list.length === 0){
     listEl.innerHTML = `<div class="empty-state"><div class="ic">👤</div><div class="msg">No owner transactions yet.</div></div>`;
     return;
@@ -2067,14 +2191,15 @@ function renderSavings(){
   }
 
   document.getElementById('savingsResult').innerHTML = `
-    <div class="profit-card" style="margin-bottom:14px;">
+    <div class="profit-card" style="margin-bottom:14px; cursor:pointer;" onclick="openProfitBreakdown('today')">
       <div class="label">Today's profit</div>
       <div class="value">${fmtK(t.profit)}</div>
       <div class="sub">${savingsPct}% of profit = ${fmtK(saveAmount)}</div>
+      <div class="sub" style="text-decoration:underline;">Tap to see the breakdown</div>
     </div>
     <div class="card-grid">
-      <div class="stat-card cash"><div class="label">Cash on hand</div><div class="value">${fmtK(cashOnHand)}</div></div>
-      <div class="stat-card stock"><div class="label">Remaining stock value</div><div class="value">${fmtK(stockVal)}</div></div>
+      <div class="stat-card cash clickable" onclick="switchToView('cash')"><div class="label">Cash on hand</div><div class="value">${fmtK(cashOnHand)}</div></div>
+      <div class="stat-card stock clickable" onclick="openStockValueBreakdown()"><div class="label">Remaining stock value</div><div class="value">${fmtK(stockVal)}</div></div>
     </div>
     <div class="entry" style="flex-direction:column; align-items:flex-start; padding:16px; ${safe ? 'border-color:var(--profit);' : 'border-color:var(--debt);'}">
       <div style="font-family:'Space Grotesk'; font-weight:700; font-size:16px; color:${safe ? 'var(--profit)' : 'var(--debt)'}; margin-bottom:6px;">
