@@ -1231,11 +1231,19 @@ function computeCOGS(sales){
 }
 
 function computeTotals(filter){
-  const { sales, stock } = getFilteredData(filter);
+  const { sales, stock, payments } = getFilteredData(filter);
 
   const totalRevenue = sales.reduce((a,s)=>a+s.amount,0);
   const totalStockCost = stock.reduce((a,s)=>a+s.amount,0);
   const cogs = computeCOGS(sales);
+
+  // "What I Made": actual cash + transfer received in this period only —
+  // excludes credit sales not yet paid, and goods/barter sales (no money changed hands)
+  const cashMade = sales.filter(s=>s.method==='cash').reduce((a,s)=>a+s.amount,0)
+    + payments.filter(p=>p.method==='cash').reduce((a,p)=>a+p.amount,0);
+  const transferMade = sales.filter(s=>s.method==='transfer').reduce((a,s)=>a+s.amount,0)
+    + payments.filter(p=>p.method==='transfer').reduce((a,p)=>a+p.amount,0);
+  const madeAmount = cashMade + transferMade;
   const grossProfit = totalRevenue - cogs;
 
   const allCreditGiven = state.sales.filter(s=>s.method==='credit').reduce((a,s)=>a+s.amount,0);
@@ -1257,7 +1265,7 @@ function computeTotals(filter){
   return {
     cashInHand, transferBalance, creditOutstanding, changeOutstanding,
     stockSpent: totalStockCost, netOwnerDraws, profit, totalRevenue,
-    cogs, grossProfit
+    cogs, grossProfit, madeAmount
   };
 }
 
@@ -1307,8 +1315,8 @@ function renderDashboard(){
   document.getElementById('statStock').textContent = fmtK(t.stockSpent);
   document.getElementById('statOwner').textContent = fmtK(t.netOwnerDraws);
 
-  document.getElementById('madeValue').textContent = fmtK(t.totalRevenue);
-  document.getElementById('madeSub').textContent = 'Total sales for this period';
+  document.getElementById('madeValue').textContent = fmtK(t.madeAmount);
+  document.getElementById('madeSub').textContent = 'Cash + transfer actually received (excludes unpaid credit & goods)';
 
   document.getElementById('grossProfitValue').textContent = fmtK(t.grossProfit);
   document.getElementById('grossProfitValue').style.color = t.grossProfit < 0 ? '#F4C7BB' : '';
